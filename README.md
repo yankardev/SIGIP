@@ -2,63 +2,125 @@
 
 **Sistema Integral de Gestión de Impresión y Pedidos**
 
-Plataforma web para una imprenta: conecta el catálogo y la compra del cliente con la cotización, aprobación de diseños, control de materiales, producción y entrega.
+Plataforma web empresarial para una imprenta: conecta el catálogo y la experiencia de compra/cotización del cliente con la gestión interna de ventas, proformas, diseños, pagos, materiales, producción, calidad y entrega.
 
-## Estado real
+## Enfoque del producto
 
-Base documental inicial. No contiene todavía una aplicación ejecutable ni acredita funcionalidades implementadas. Los requisitos y contratos son una propuesta de trabajo versionable; las políticas comerciales deben validarse con la imprenta. No se han realizado mediciones ni entrevistas a una empresa.
+SIGIP tendrá dos experiencias conectadas:
 
-Repositorio: [yankardev/SIGIP](https://github.com/yankardev/SIGIP), creado por su propietario con visibilidad pública. Esta entrega publica la base documental inicial; la aplicación está pendiente de implementación.
+- **Portal del cliente (ecommerce):** catálogo, configuración de servicios, solicitudes de cotización, proformas, pedidos, archivos, aprobaciones y seguimiento.
+- **Backoffice empresarial:** ventas, caja, diseño, almacén, producción, calidad, entregas, reportes, usuarios y permisos.
 
-## Qué podrá hacer
+El flujo de negocio principal es:
 
-- Ofrecer catálogo público, configuración de servicios y carrito de solicitudes.
-- Emitir proformas PDF versionadas y convertir una aceptación en un pedido único.
-- Registrar adelantos y saldos verificados por caja.
-- Recibir archivos, presentar versiones del diseño y registrar aprobación u observaciones del cliente.
-- Reservar materiales y programar producción cuando se cumplan los requisitos.
-- Registrar impresión, acabados, control de calidad, entrega y trazabilidad.
-- Enviar notificaciones sin bloquear el trabajo y mostrar indicadores operativos.
+```text
+Cliente
+  ↓
+Catálogo / configuración
+  ↓
+Solicitud o compra
+  ↓
+Proforma
+  ↓
+Aceptación
+  ↓
+Pedido
+  ↓
+Pago / condición comercial
+  ↓
+Diseño y aprobación
+  ↓
+Reserva de materiales
+  ↓
+Producción
+  ↓
+Control de calidad
+  ↓
+Entrega
+```
 
-El cliente verá sus pedidos y documentos. El personal trabajará con bandejas por responsabilidad. No se promete facturación electrónica, cobro bancario automático ni envío real de WhatsApp en esta primera versión.
+## Arquitectura prevista
 
-## Documentación
+```text
+Angular
+   ↓
+API Gateway :8090
+   ├── auth-service :8093
+   └── catalog-service :8094
+          ↑
+      Eureka :8761
+```
 
-1. [Alcance, actores y reglas](docs/01-alcance.md).
-2. [Flujo de trabajo y estados](docs/02-flujo-operativo.md).
-3. [Arquitectura y comunicación](docs/03-arquitectura.md).
-4. [Modelo de datos y contratos](docs/04-datos-y-contratos.md).
-5. [Plan de implementación y aceptación](docs/05-plan-y-pruebas.md).
-6. [Fuentes, decisiones y pendientes](docs/06-decisiones.md).
+Servicios posteriores:
 
-## Organización prevista
+- sales-service: clientes, solicitudes, proformas, pedidos, pagos y entregas.
+- production-service: archivos, versiones de diseño, aprobaciones, órdenes de trabajo y calidad.
+- inventory-service: insumos, reservas, consumos y movimientos.
+- notification-service: avisos y reintentos.
 
-Un repositorio contendrá documentación, frontend y proyectos Spring Boot independientes. Un único repositorio no implica un único proceso desplegable.
+La comunicación síncrona se utilizará cuando la operación necesite una respuesta inmediata; la asincronía con RabbitMQ se reservará para eventos, notificaciones y procesos posteriores que no deben bloquear la decisión principal.
 
-| Carpeta futura | Responsabilidad |
-|---|---|
-| `frontend/sigip-web` | Angular: portal del cliente y gestión interna |
-| `backend/discovery-server` | Registro Eureka |
-| `backend/api-gateway` | Entrada y enrutamiento de API |
-| `backend/auth-service` | Usuarios, roles y autenticación |
-| `backend/catalog-service` | Catálogo, configuraciones y tarifas |
-| `backend/sales-service` | Clientes, proformas, pedidos, caja y entregas |
-| `backend/production-service` | Diseños, aprobaciones y órdenes de trabajo |
-| `backend/inventory-service` | Insumos, reservas y movimientos |
-| `backend/notification-service` | Notificaciones y reintentos |
-| `infra` | Despliegue, cuando existan servicios ejecutables |
+## Estado actual
 
-Estas carpetas se crearán al implementar cada componente. No hay microservicios vacíos presentados como avance.
+### Implementado en develop
 
-## Convenciones
+- auth-service: estructura Spring Boot, usuarios/roles, BCrypt, login JWT, filtro JWT, @PreAuthorize, validaciones y pruebas de repositorio.
+- catalog-service: categorías, servicios de impresión, CRUD REST, persistencia, validaciones, pruebas de repositorio y protección JWT para operaciones administrativas.
+- discovery-server: Eureka Server.
+- api-gateway: Gateway inicial con rutas hacia autenticación y catálogo.
+- Bases iniciales MySQL para autenticación y catálogo.
 
-- Paquetes Java: `controller`, `dto`, `model`, `repository`, `service`, `security`; `client` y `messaging` cuando correspondan.
-- Dinero: `BigDecimal` y columnas decimales. Fechas técnicas en UTC, presentación en `America/Lima`.
-- Cada servicio será dueño de sus tablas. Sin consultas SQL ni claves foráneas entre servicios.
-- Los secretos se configuran fuera de Git. Los archivos del cliente quedan fuera del repositorio.
-- Cada entrega debe distinguir diseño, implementación y evidencia de ejecución.
-- Los ejemplos del curso y el informe de referencia permanecen como material de consulta; no se publican dentro de SIGIP.
+### Pendiente
 
-## Primera meta
+- Validación local de ejecución con MySQL.
+- Pruebas HTTP de login y CRUD.
+- Registro comprobado de servicios en Eureka.
+- Feign entre servicios.
+- Portal Angular.
+- Clientes, solicitudes, proformas y pedidos.
+- Diseños y aprobaciones.
+- Inventario y producción.
+- RabbitMQ, outbox, deduplicación y reintentos.
+- Resiliencia, Docker/Kubernetes y observabilidad.
 
-Avance del sábado **10 de octubre de 2026**, según la fecha indicada por el responsable del proyecto. Prioridad: login REST, BCrypt, validaciones, persistencia, pruebas de repositorio y Angular. El flujo empresarial completo se desarrolla en incrementos posteriores.
+No se considera una funcionalidad terminada solo por existir su carpeta o código; debe ejecutarse y contar con evidencia.
+
+## Estructura
+
+```text
+SIGIP/
+├── backend/
+│   ├── discovery-server/
+│   ├── api-gateway/
+│   ├── auth-service/
+│   └── catalog-service/
+├── frontend/
+├── infra/
+├── docs/
+└── README.md
+```
+
+## Configuración local
+
+No se almacenan contraseñas ni secretos en Git.
+
+Para auth-service:
+
+```text
+DB_USER=root
+DB_PASSWORD=<tu-clave-local>
+JWT_SECRET=<secreto-base64-de-al-menos-32-bytes>
+JWT_EXPIRATION_MINUTES=30
+SIGIP_ADMIN_PASSWORD=<clave-local-para-admin>
+```
+
+Crear primero las bases indicadas en:
+
+infra/mysql/init/01-create-databases.sql
+
+Los detalles de cada servicio se encuentran en su README.
+
+## Ramas
+
+- main: versión estable.
+- develop: integración y desarrollo del proyecto.
