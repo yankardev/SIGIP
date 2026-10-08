@@ -46,7 +46,7 @@ public class AuthController {
                 )
         );
 
-        var authorities = authentication.getAuthorities();
+        var authorities = authentication.getAuthorities().stream().toList();
 
         String token = jwtService.generarToken(
                 authentication.getName(),
