@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import pe.edu.cibertec.sigip.catalogservice.dto.ServicioImpresionRequest;
 import pe.edu.cibertec.sigip.catalogservice.dto.ServicioImpresionResponse;
 import pe.edu.cibertec.sigip.catalogservice.service.ServicioImpresionService;
@@ -29,6 +30,7 @@ public class ServicioImpresionController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ServicioImpresionResponse> registrar(
             @Valid @RequestBody ServicioImpresionRequest request
     ) {
@@ -37,6 +39,7 @@ public class ServicioImpresionController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ServicioImpresionResponse> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody ServicioImpresionRequest request
@@ -45,6 +48,7 @@ public class ServicioImpresionController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         servicioService.eliminar(id);
         return ResponseEntity.noContent().build();
