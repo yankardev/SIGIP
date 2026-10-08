@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import pe.edu.cibertec.sigip.catalogservice.dto.CategoriaRequest;
 import pe.edu.cibertec.sigip.catalogservice.dto.CategoriaResponse;
 import pe.edu.cibertec.sigip.catalogservice.service.CategoriaService;
@@ -29,6 +30,7 @@ public class CategoriaController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoriaResponse> registrar(
             @Valid @RequestBody CategoriaRequest request
     ) {
@@ -37,6 +39,7 @@ public class CategoriaController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoriaResponse> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody CategoriaRequest request
@@ -45,6 +48,7 @@ public class CategoriaController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         categoriaService.eliminar(id);
         return ResponseEntity.noContent().build();
