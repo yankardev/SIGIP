@@ -27,8 +27,10 @@ public class ServicioImpresionService {
     }
 
     @Transactional(readOnly = true)
-    public ServicioImpresionResponse listarActivos() {
-        return null;
+    public List<ServicioImpresionResponse> listarActivos() {
+        return servicioRepository.findByActivoTrueOrderByNombreAsc().stream()
+                .map(ServicioImpresionResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
