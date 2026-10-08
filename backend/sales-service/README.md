@@ -1,0 +1,1 @@
+Microservicio de ventas: pedidos y futura cotización. Incluye cliente Feign hacia catalog-service.
