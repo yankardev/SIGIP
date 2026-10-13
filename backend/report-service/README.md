@@ -1,0 +1,1 @@
+Microservicio de reportes y consultas consolidadas. Endpoint inicial protegido para validar el servicio.
