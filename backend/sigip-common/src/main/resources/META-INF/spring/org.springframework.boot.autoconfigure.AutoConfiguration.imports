@@ -1,0 +1,2 @@
+pe.edu.cibertec.sigip.common.security.SigipSecurityAutoConfiguration
+pe.edu.cibertec.sigip.common.feign.FeignTokenAutoConfiguration

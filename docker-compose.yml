@@ -1,0 +1,148 @@
+# Levanta SIGIP completo en local:   cp .env.example .env  &&  docker compose up -d --build
+# Gateway: http://localhost:8090   Eureka: http://localhost:8761   RabbitMQ: http://localhost:15672
+
+x-servicio: &servicio
+  build:
+    context: .
+  restart: unless-stopped
+  depends_on:
+    discovery-server:
+      condition: service_healthy
+    mysql:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+
+x-entorno: &entorno
+  JWT_SECRET: ${JWT_SECRET}
+  EUREKA_URL: http://discovery-server:8761/eureka/
+  DB_USER: root
+  DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_USER: ${RABBITMQ_USER}
+  RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports: ["3306:3306"]
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./infra/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports: ["5672:5672", "15672:15672"]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      retries: 10
+
+  discovery-server:
+    build:
+      context: .
+      args: { SERVICE: discovery-server }
+    ports: ["8761:8761"]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8761' || exit 1"]
+      interval: 10s
+      retries: 12
+
+  api-gateway:
+    build:
+      context: .
+      args: { SERVICE: api-gateway }
+    ports: ["8090:8090"]
+    environment:
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+  auth-service:
+    <<: *servicio
+    build:
+      context: .
+      args: { SERVICE: auth-service }
+    environment:
+      <<: *entorno
+      DB_URL: jdbc:mysql://mysql:3306/sigip_auth?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Lima
+      SIGIP_ADMIN_USERNAME: ${SIGIP_ADMIN_USERNAME}
+      SIGIP_ADMIN_EMAIL: ${SIGIP_ADMIN_EMAIL}
+      SIGIP_ADMIN_PASSWORD: ${SIGIP_ADMIN_PASSWORD}
+
+  catalog-service:
+    <<: *servicio
+    build:
+      context: .
+      args: { SERVICE: catalog-service }
+    environment:
+      <<: *entorno
+      DB_URL: jdbc:mysql://mysql:3306/sigip_catalog?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Lima
+    # Escalado horizontal: docker compose up -d --scale catalog-service=2  (el gateway reparte la carga)
+
+  sales-service:
+    <<: *servicio
+    build:
+      context: .
+      args: { SERVICE: sales-service }
+    environment:
+      <<: *entorno
+      DB_URL: jdbc:mysql://mysql:3306/sigip_sales?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Lima
+
+  design-service:
+    <<: *servicio
+    build:
+      context: .
+      args: { SERVICE: design-service }
+    environment:
+      <<: *entorno
+      DB_URL: jdbc:mysql://mysql:3306/sigip_design?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Lima
+
+  production-service:
+    <<: *servicio
+    build:
+      context: .
+      args: { SERVICE: production-service }
+    environment:
+      <<: *entorno
+      DB_URL: jdbc:mysql://mysql:3306/sigip_production?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Lima
+
+  inventory-service:
+    <<: *servicio
+    build:
+      context: .
+      args: { SERVICE: inventory-service }
+    environment:
+      <<: *entorno
+      DB_URL: jdbc:mysql://mysql:3306/sigip_inventory?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Lima
+
+  notification-service:
+    <<: *servicio
+    build:
+      context: .
+      args: { SERVICE: notification-service }
+    environment:
+      <<: *entorno
+      DB_URL: jdbc:mysql://mysql:3306/sigip_notification?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Lima
+
+  report-service:
+    <<: *servicio
+    build:
+      context: .
+      args: { SERVICE: report-service }
+    environment:
+      <<: *entorno
+
+volumes:
+  mysql-data:

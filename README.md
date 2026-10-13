@@ -1,64 +1,110 @@
-# SIGIP
+# SIGIP — Sistema Integral de Gestión de Impresión y Pedidos
 
-**Sistema Integral de Gestión de Impresión y Pedidos**
+Backend de microservicios con Spring Boot 4 y Spring Cloud para una imprenta: catálogo, pedidos,
+pagos, diseños, producción, inventario, notificaciones y reportes.
+Proyecto del curso **Desarrollo de Servicios Web II (4698)** — Cibertec, sexto ciclo.
 
-Plataforma web para una imprenta: conecta el catálogo y la compra del cliente con la cotización, aprobación de diseños, control de materiales, producción y entrega.
+![CI](https://github.com/yankardev/SIGIP/actions/workflows/ci.yml/badge.svg)
 
-## Estado real
+## Arquitectura
 
-Base documental inicial. No contiene todavía una aplicación ejecutable ni acredita funcionalidades implementadas. Los requisitos y contratos son una propuesta de trabajo versionable; las políticas comerciales deben validarse con la imprenta. No se han realizado mediciones ni entrevistas a una empresa.
+```
+                    ┌──────────────────────┐
+  Cliente / Postman │  API Gateway  :8090  │  lb:// + CORS + balanceo de carga
+                    └──────────┬───────────┘
+                               │  (Eureka :8761 registra y ubica las instancias)
+   ┌─────────┬─────────┬───────┴──┬──────────┬────────────┬───────────┬──────────┐
+ auth     catalog    sales     design   production   inventory  notification  report
+ :8093    :8094      :8095     :8096    :8097        :8098      :8099         :8100
+ JWT      caché      Feign ──► Feign ──► Feign         kárdex    RabbitMQ ◄──  Feign
+ BCrypt   Caffeine   catálogo  ventas    ventas                  (eventos)     ventas+inventario
+   │         │         │         │          │            │           │
+  BD        BD        BD        BD         BD           BD          BD        (sin BD)
+```
 
-Repositorio: [yankardev/SIGIP](https://github.com/yankardev/SIGIP), creado por su propietario con visibilidad pública. Esta entrega publica la base documental inicial; la aplicación está pendiente de implementación.
+- **Base de datos por servicio** (MySQL en local, PostgreSQL en la nube con un esquema por servicio).
+- **sigip-common**: librería compartida con seguridad JWT, formato único de errores y el contrato de eventos.
+- **Comunicación síncrona** con OpenFeign + Resilience4j (circuit breaker, timeouts y fallbacks).
+- **Comunicación asíncrona** con RabbitMQ: sales publica eventos de pedido; notification los consume con
+  reintentos, cola de fallos (DLQ) e idempotencia.
 
-## Qué podrá hacer
+| Servicio | Responsabilidad | Endpoints principales (vía gateway) |
+|---|---|---|
+| auth | Login JWT, registro, usuarios y roles (BCrypt) | `/auth-service/api/v1/auth/login`, `/auth-service/api/v1/usuarios` |
+| catalog | Categorías y servicios de impresión, con caché | `/catalog-service/api/v1/categorias`, `/catalog-service/api/v1/servicios` |
+| sales | Pedidos, flujo de estados y pagos | `/sales-service/api/v1/pedidos`, `/sales-service/api/v1/pagos` |
+| design | Versiones de diseño y aprobación del cliente | `/design-service/api/v1/disenos` |
+| production | Órdenes de producción, cola por prioridad, calidad | `/production-service/api/v1/ordenes-produccion` |
+| inventory | Insumos, stock mínimo y kárdex | `/inventory-service/api/v1/insumos` |
+| notification | Avisos al cliente desde eventos RabbitMQ | `/notification-service/api/v1/notificaciones` |
+| report | Dashboard consolidado del administrador | `/report-service/api/v1/reportes/dashboard` |
 
-- Ofrecer catálogo público, configuración de servicios y carrito de solicitudes.
-- Emitir proformas PDF versionadas y convertir una aceptación en un pedido único.
-- Registrar adelantos y saldos verificados por caja.
-- Recibir archivos, presentar versiones del diseño y registrar aprobación u observaciones del cliente.
-- Reservar materiales y programar producción cuando se cumplan los requisitos.
-- Registrar impresión, acabados, control de calidad, entrega y trazabilidad.
-- Enviar notificaciones sin bloquear el trabajo y mostrar indicadores operativos.
+Todos los recursos tienen **GET, POST, PUT y DELETE** persistidos en base de datos. Detalle en
+[docs/04-datos-y-contratos.md](docs/04-datos-y-contratos.md) y en la colección
+[postman/SIGIP.postman_collection.json](postman/SIGIP.postman_collection.json).
 
-El cliente verá sus pedidos y documentos. El personal trabajará con bandejas por responsabilidad. No se promete facturación electrónica, cobro bancario automático ni envío real de WhatsApp en esta primera versión.
+## Ejecutar
+
+### Opción 1: Docker Compose (todo el sistema)
+
+```bash
+cp .env.example .env          # y cambia las claves
+docker compose up -d --build
+./scripts/prueba-e2e.sh       # recorre el flujo completo por el gateway
+```
+
+Gateway `http://localhost:8090`, Eureka `http://localhost:8761`, RabbitMQ `http://localhost:15672`.
+
+### Opción 2: desde IntelliJ / Maven
+
+Requisitos: Java 25, Maven 3.9, MySQL 8 y (opcional) RabbitMQ.
+
+```bash
+mysql -u root -p < infra/mysql/init/01-create-databases.sql
+mvn clean install -DskipTests
+```
+
+Variables de entorno: `DB_USER`, `DB_PASSWORD`, `JWT_SECRET` (el mismo en todos) y en auth
+`SIGIP_ADMIN_PASSWORD`. Sin RabbitMQ, usa `EVENTOS_HABILITADOS=false`.
+Orden de arranque: discovery-server → auth → catalog → sales → resto → api-gateway.
+
+## Pruebas y calidad
+
+```bash
+mvn clean verify
+```
+
+Compila los 11 módulos y ejecuta **78 pruebas** (repositorios con H2, integración REST con MockMvc,
+seguridad, reglas de negocio y la prueba de optimización). Reportes:
+
+- Pruebas: `backend/<servicio>/target/surefire-reports/`
+- Cobertura JaCoCo: `backend/<servicio>/target/site/jacoco/index.html`
+- Optimización medida: `backend/catalog-service/target/optimizacion-catalogo.md`
+
+## DevOps
+
+- **CI con GitHub Actions** (`.github/workflows/ci.yml`): en cada push o PR a `main`/`develop` compila,
+  prueba, publica reportes y construye las 10 imágenes Docker. Alternativa en `Jenkinsfile`.
+- **Docker**: un solo `Dockerfile` multi-etapa para todos los servicios (`--build-arg SERVICE=...`).
+- **Nube**: `render.yaml` despliega todo en Render con PostgreSQL. Ver [docs/09-despliegue-nube.md](docs/09-despliegue-nube.md).
+- **Monitoreo**: Actuator (`/actuator/health`) y métricas Prometheus (`/actuator/prometheus`).
 
 ## Documentación
 
-1. [Alcance, actores y reglas](docs/01-alcance.md).
-2. [Flujo de trabajo y estados](docs/02-flujo-operativo.md).
-3. [Arquitectura y comunicación](docs/03-arquitectura.md).
-4. [Modelo de datos y contratos](docs/04-datos-y-contratos.md).
-5. [Plan de implementación y aceptación](docs/05-plan-y-pruebas.md).
-6. [Fuentes, decisiones y pendientes](docs/06-decisiones.md).
-
-## Organización prevista
-
-Un repositorio contendrá documentación, frontend y proyectos Spring Boot independientes. Un único repositorio no implica un único proceso desplegable.
-
-| Carpeta futura | Responsabilidad |
+| Documento | Contenido |
 |---|---|
-| `frontend/sigip-web` | Angular: portal del cliente y gestión interna |
-| `backend/discovery-server` | Registro Eureka |
-| `backend/api-gateway` | Entrada y enrutamiento de API |
-| `backend/auth-service` | Usuarios, roles y autenticación |
-| `backend/catalog-service` | Catálogo, configuraciones y tarifas |
-| `backend/sales-service` | Clientes, proformas, pedidos, caja y entregas |
-| `backend/production-service` | Diseños, aprobaciones y órdenes de trabajo |
-| `backend/inventory-service` | Insumos, reservas y movimientos |
-| `backend/notification-service` | Notificaciones y reintentos |
-| `infra` | Despliegue, cuando existan servicios ejecutables |
+| [01-alcance](docs/01-alcance.md) | Problema, alcance y actores |
+| [02-flujo-operativo](docs/02-flujo-operativo.md) | Flujo del pedido de punta a punta |
+| [03-arquitectura](docs/03-arquitectura.md) | Microservicios, patrones y principios SOLID |
+| [04-datos-y-contratos](docs/04-datos-y-contratos.md) | Modelo de datos y API |
+| [05-plan-y-pruebas](docs/05-plan-y-pruebas.md) | Plan, backlog y pruebas |
+| [06-decisiones](docs/06-decisiones.md) | Decisiones de diseño |
+| [07-devops-ci-cd](docs/07-devops-ci-cd.md) | Git, pipeline CI, Maven y Docker |
+| [08-optimizacion](docs/08-optimizacion.md) | Cuellos de botella, optimización y resultados medidos |
+| [09-despliegue-nube](docs/09-despliegue-nube.md) | Publicación en Render con PostgreSQL |
 
-Estas carpetas se crearán al implementar cada componente. No hay microservicios vacíos presentados como avance.
+## Seguridad
 
-## Convenciones
-
-- Paquetes Java: `controller`, `dto`, `model`, `repository`, `service`, `security`; `client` y `messaging` cuando correspondan.
-- Dinero: `BigDecimal` y columnas decimales. Fechas técnicas en UTC, presentación en `America/Lima`.
-- Cada servicio será dueño de sus tablas. Sin consultas SQL ni claves foráneas entre servicios.
-- Los secretos se configuran fuera de Git. Los archivos del cliente quedan fuera del repositorio.
-- Cada entrega debe distinguir diseño, implementación y evidencia de ejecución.
-- Los ejemplos del curso y el informe de referencia permanecen como material de consulta; no se publican dentro de SIGIP.
-
-## Primera meta
-
-Avance del sábado **10 de octubre de 2026**, según la fecha indicada por el responsable del proyecto. Prioridad: login REST, BCrypt, validaciones, persistencia, pruebas de repositorio y Angular. El flujo empresarial completo se desarrolla en incrementos posteriores.
+- Contraseñas con BCrypt; nunca en texto plano.
+- JWT firmado (HS256) con `JWT_SECRET` compartido; nunca se sube al repositorio (`.env` está en `.gitignore`).
+- Roles `ADMIN` y `CLIENTE` con `@PreAuthorize`; un cliente solo ve sus propios pedidos, diseños y avisos.
