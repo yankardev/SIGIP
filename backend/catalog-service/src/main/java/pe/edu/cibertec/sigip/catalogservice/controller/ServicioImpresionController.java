@@ -24,6 +24,12 @@ public class ServicioImpresionController {
         return ResponseEntity.ok(servicioService.listar());
     }
 
+    /** Servicios activos: lo que ve el cliente en el catálogo. */
+    @GetMapping("/activos")
+    public ResponseEntity<List<ServicioImpresionResponse>> listarActivos() {
+        return ResponseEntity.ok(servicioService.listarActivos());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ServicioImpresionResponse> obtener(@PathVariable Integer id) {
         return ResponseEntity.ok(servicioService.obtener(id));

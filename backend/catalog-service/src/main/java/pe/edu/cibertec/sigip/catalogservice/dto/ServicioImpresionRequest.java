@@ -1,6 +1,7 @@
 package pe.edu.cibertec.sigip.catalogservice.dto;
 
 import jakarta.validation.constraints.*;
+
 import java.math.BigDecimal;
 
 public record ServicioImpresionRequest(
@@ -12,13 +13,17 @@ public record ServicioImpresionRequest(
         String descripcion,
 
         @NotNull(message = "El precio base es obligatorio")
-        @DecimalMin(value = "0.00", inclusive = true, message = "El precio base no puede ser negativo")
+        @DecimalMin(value = "0.00", message = "El precio base no puede ser negativo")
+        @Digits(integer = 10, fraction = 2, message = "El precio admite como máximo 2 decimales")
         BigDecimal precioBase,
 
         @NotNull(message = "Debe indicar si requiere cotización")
         Boolean requiereCotizacion,
 
         @NotNull(message = "La categoría es obligatoria")
-        Integer idcategoria
+        Integer idcategoria,
+
+        /** Opcional: permite desactivar un servicio sin borrarlo. Si no se envía, se conserva. */
+        Boolean activo
 ) {
 }

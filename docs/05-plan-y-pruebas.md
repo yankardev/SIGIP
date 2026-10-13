@@ -2,7 +2,7 @@
 
 ## Estado de entrega
 
-Esta base solo acredita documentación y estructura Git local. Todas las funcionalidades siguientes están pendientes. El porcentaje de avance deberá calcularse a partir de criterios aceptados y evidencias; no a partir del número de carpetas.
+Implementado y probado: autenticación (SIGIP-01/02), catálogo (03), repositorios con pruebas (04), Eureka/Gateway/Feign (06), diseño con versiones (09), pagos con verificación (10), producción con calidad y reproceso (12), eventos RabbitMQ con idempotencia y DLQ (13). Pendiente: Angular (05), proforma PDF (07-08) y reservas de stock por pedido (11). `mvn clean verify` ejecuta 78 pruebas en verde.
 
 ## Incrementos
 
