@@ -1,11 +1,43 @@
-<div class="auth-layout">
- <section class="auth-brand-panel"><div class="auth-brand"><div class="brand-mark large">S</div><div><strong>SIGIP</strong><span>Sistema Integral de Gestión de Impresión y Pedidos</span></div></div>
- <div class="auth-pitch"><span class="eyebrow light">GESTIÓN INTELIGENTE</span><h1>De la idea<br>al <span>impreso.</span></h1><p>Organiza pedidos, diseños, producción e inventario desde un solo espacio de trabajo.</p><div class="feature-line"><span>01</span> Pedidos con seguimiento</div><div class="feature-line"><span>02</span> Aprobación de diseños</div><div class="feature-line"><span>03</span> Control de producción</div></div><div class="auth-footer">SIGIP · Proyecto académico Cibertec</div></section>
- <section class="auth-form-panel"><div class="auth-form-wrap"><a class="back-to-portal" routerLink="/inicio">← Volver al portal público</a><div class="mobile-brand"><div class="brand-mark">S</div><strong>SIGIP</strong></div><span class="eyebrow">BIENVENIDO DE NUEVO</span><h2>Inicia sesión</h2><p class="muted">Ingresa tus credenciales para continuar.</p>
- <div class="alert error" *ngIf="error">{{error}}</div>
- <form (ngSubmit)="submit()" #formRef="ngForm"><label for="nomusuario">Usuario</label><input id="nomusuario" name="nomusuario" [(ngModel)]="form.nomusuario" placeholder="Tu nombre de usuario" autocomplete="username" required>
- <label for="password">Contraseña</label><input id="password" name="password" type="password" [(ngModel)]="form.password" placeholder="Ingresa tu contraseña" autocomplete="current-password" required>
- <button class="primary-btn full" type="submit" [disabled]="formRef.invalid||loading">{{loading?'Conectando...':'Ingresar al sistema →'}}</button></form>
- <div class="auth-divider"><span>¿Aún no tienes cuenta?</span></div><a class="secondary-btn full" routerLink="/registro">Crear cuenta de cliente</a>
- <p class="tiny-note">El acceso de administrador se configura en el backend mediante las variables SIGIP_ADMIN_*.</p></div></section>
+<div class="auth-layout" [class.internal-mode]="isInternal">
+ <section class="auth-brand-panel">
+  <div class="auth-brand"><div class="brand-mark large">S</div><div><strong>SIGIP</strong><span>Sistema Integral de Gestión de Impresión y Pedidos</span></div></div>
+  <div class="auth-pitch">
+   <span class="eyebrow light">{{isInternal ? 'ACCESO CORPORATIVO' : 'GESTIÓN INTELIGENTE'}}</span>
+   <h1>{{isInternal ? 'Tu equipo' : 'De la idea'}}<br><span>{{isInternal ? 'en marcha.' : 'al impreso.'}}</span></h1>
+   <p>{{isInternal ? 'Gestiona las operaciones de la empresa desde un espacio de trabajo protegido por roles y permisos.' : 'Organiza pedidos, diseños, producción e inventario desde un solo espacio de trabajo.'}}</p>
+   <div class="feature-line" *ngIf="isInternal"><span>01</span> Acceso según tu rol</div>
+   <div class="feature-line" *ngIf="isInternal"><span>02</span> Operaciones coordinadas</div>
+   <div class="feature-line" *ngIf="isInternal"><span>03</span> Información protegida</div>
+   <div class="feature-line" *ngIf="!isInternal"><span>01</span> Pedidos con seguimiento</div>
+   <div class="feature-line" *ngIf="!isInternal"><span>02</span> Aprobación de diseños</div>
+   <div class="feature-line" *ngIf="!isInternal"><span>03</span> Control de producción</div>
+  </div>
+  <div class="auth-footer">SIGIP · Proyecto académico Cibertec</div>
+ </section>
+ <section class="auth-form-panel">
+  <div class="auth-form-wrap">
+   <a class="back-to-portal" routerLink="/inicio">← Volver al portal público</a>
+   <div class="mobile-brand"><div class="brand-mark">S</div><strong>SIGIP</strong></div>
+   <span class="eyebrow">{{isInternal ? 'PERSONAL AUTORIZADO' : 'BIENVENIDO DE NUEVO'}}</span>
+   <h2>{{isInternal ? 'Acceso interno' : 'Inicia sesión'}}</h2>
+   <p class="muted">{{isInternal ? 'Ingresa con las credenciales que te asignó el administrador.' : 'Ingresa tus credenciales para continuar.'}}</p>
+   <div class="alert error" *ngIf="error" role="alert">{{error}}</div>
+   <form (ngSubmit)="submit()" #formRef="ngForm">
+    <label for="nomusuario">Usuario</label>
+    <input id="nomusuario" name="nomusuario" [(ngModel)]="form.nomusuario" [placeholder]="isInternal ? 'Usuario corporativo' : 'Tu nombre de usuario'" autocomplete="username" required>
+    <label for="password">Contraseña</label>
+    <input id="password" name="password" type="password" [(ngModel)]="form.password" placeholder="Ingresa tu contraseña" autocomplete="current-password" required>
+    <button class="primary-btn full" type="submit" [disabled]="formRef.invalid||loading">{{loading ? 'Validando...' : (isInternal ? 'Entrar al espacio de trabajo →' : 'Ingresar al portal →')}}</button>
+   </form>
+   <ng-container *ngIf="!isInternal">
+    <div class="auth-divider"><span>¿Aún no tienes cuenta?</span></div>
+    <a class="secondary-btn full" routerLink="/registro">Crear cuenta de cliente</a>
+    <p class="auth-mode-switch">¿Trabajas en la empresa? <a routerLink="/login-interno">Acceso para personal interno</a></p>
+   </ng-container>
+   <ng-container *ngIf="isInternal">
+    <p class="tiny-note">Acceso exclusivo para personal autorizado. Si necesitas una cuenta, solicita al administrador que la cree.</p>
+    <p class="auth-mode-switch">¿Eres cliente? <a routerLink="/login">Ingresa al portal de clientes</a></p>
+   </ng-container>
+  </div>
+ </section>
 </div>
