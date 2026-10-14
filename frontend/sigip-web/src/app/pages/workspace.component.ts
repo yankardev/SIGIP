@@ -7,7 +7,7 @@ import { ApiService } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
 import { Categoria, Diseno, Insumo, Notificacion, OrdenProduccion, Pedido, Pago, ServicioImpresion, Usuario, UsuarioAdminRequest } from '../core/models';
 
-interface MenuItem { label:string; path:string; icon:string; admin?:boolean; }
+interface MenuItem { label:string; path:string; icon:string; roles?:string[]; admin?:boolean; }
 @Component({selector:'sigip-workspace',standalone:true,imports:[CommonModule,FormsModule,RouterLink,RouterLinkActive],templateUrl:'./workspace.component.html',styleUrls:['./workspace.component.css']})
 export class WorkspaceComponent implements OnInit {
  readonly auth=inject(AuthService);private api=inject(ApiService);private route=inject(ActivatedRoute);private router=inject(Router);
@@ -18,22 +18,35 @@ export class WorkspaceComponent implements OnInit {
  orderForm:{idservicio:number|null;cantidad:number;especificaciones:string}={idservicio:null,cantidad:1,especificaciones:''};
  paymentOrderId:number|null=null;paymentForm={monto:0,metodo:'YAPE',numeroOperacion:''};
  quoteOrderId:number|null=null;quoteForm={precioUnitario:0,observacion:''};
- userForm:{nomusuario:string;email:string;password:string;nombres:string;apellidos:string;activo:boolean;rol:'CLIENTE'|'ADMIN'}={nomusuario:'',email:'',password:'',nombres:'',apellidos:'',activo:true,rol:'CLIENTE'};editingUserId:number|null=null;
+ userForm:{nomusuario:string;email:string;password:string;nombres:string;apellidos:string;activo:boolean;rol:'CLIENTE'|'ADMIN'|'VENTAS'|'CAJA'|'DISENO'|'PRODUCCION'|'ALMACEN'}={nomusuario:'',email:'',password:'',nombres:'',apellidos:'',activo:true,rol:'CLIENTE'};editingUserId:number|null=null;
+ readonly roleOptions:Array<{value:'CLIENTE'|'ADMIN'|'VENTAS'|'CAJA'|'DISENO'|'PRODUCCION'|'ALMACEN';label:string}>=[
+  {value:'CLIENTE',label:'Cliente externo'},{value:'VENTAS',label:'Ventas y cotizaciones'},{value:'CAJA',label:'Caja y pagos'},
+  {value:'DISENO',label:'Diseño gráfico'},{value:'PRODUCCION',label:'Producción y calidad'},{value:'ALMACEN',label:'Almacén e inventario'},{value:'ADMIN',label:'Administrador del sistema'}
+ ];editingUserId:number|null=null;
  designForm={idpedido:0,nombreArchivo:'',urlArchivo:'',descripcion:''};
  productionForm={idpedido:0,prioridad:'MEDIA',responsable:'',observacion:''};
  supplyForm={codigo:'',nombre:'',unidadMedida:'unidad',stockActual:0,stockMinimo:0,activo:true};
  movementSupplyId:number|null=null;movementForm:{tipo:'ENTRADA'|'SALIDA';cantidad:number;motivo:string;idpedido:number|null}={tipo:'ENTRADA',cantidad:1,motivo:'',idpedido:null};
  readonly menu:MenuItem[]=[
-  {label:'Dashboard',path:'/dashboard',icon:'▦'},{label:'Catálogo',path:'/catalogo',icon:'▤'},{label:'Cotizaciones',path:'/cotizaciones',icon:'▧'},
-  {label:'Pedidos y pagos',path:'/pedidos',icon:'▣'},{label:'Pagos',path:'/pagos',icon:'S/'},{label:'Diseños',path:'/disenos',icon:'◈'},
-  {label:'Producción',path:'/produccion',icon:'⚙',admin:true},{label:'Entregas',path:'/entregas',icon:'⇢',admin:true},
-  {label:'Inventario',path:'/inventario',icon:'▥',admin:true},{label:'Gestionar catálogo',path:'/servicios',icon:'✳',admin:true},
-  {label:'Categorías',path:'/categorias',icon:'◫',admin:true},{label:'Usuarios',path:'/usuarios',icon:'♙',admin:true},
-  {label:'Notificaciones',path:'/notificaciones',icon:'♧'},{label:'Reportes',path:'/reportes',icon:'▨',admin:true}
+  {label:'Dashboard',path:'/dashboard',icon:'▦',roles:['CLIENTE','VENTAS','CAJA','DISENO','PRODUCCION','ALMACEN']},
+  {label:'Catálogo',path:'/catalogo',icon:'▤',roles:['CLIENTE','VENTAS']},
+  {label:'Cotizaciones',path:'/cotizaciones',icon:'▧',roles:['CLIENTE','VENTAS']},
+  {label:'Pedidos',path:'/pedidos',icon:'▣',roles:['CLIENTE','VENTAS','CAJA']},
+  {label:'Pagos y caja',path:'/pagos',icon:'S/',roles:['CLIENTE','CAJA']},
+  {label:'Diseños',path:'/disenos',icon:'◈',roles:['CLIENTE','DISENO']},
+  {label:'Producción',path:'/produccion',icon:'⚙',roles:['PRODUCCION']},
+  {label:'Entregas',path:'/entregas',icon:'⇢',roles:['VENTAS','PRODUCCION']},
+  {label:'Inventario',path:'/inventario',icon:'▥',roles:['ALMACEN']},
+  {label:'Gestionar catálogo',path:'/servicios',icon:'✳',admin:true},
+  {label:'Categorías',path:'/categorias',icon:'◫',admin:true},
+  {label:'Seguridad y accesos',path:'/seguridad',icon:'♙',admin:true},
+  {label:'Notificaciones',path:'/notificaciones',icon:'♧',roles:['CLIENTE','VENTAS','CAJA','DISENO','PRODUCCION','ALMACEN']},
+  {label:'Reportes',path:'/reportes',icon:'▨',roles:['VENTAS','CAJA']}
  ];
  get isAdmin():boolean{return this.auth.isAdmin;}
- get visibleMenu():MenuItem[]{return this.menu.filter(item=>!item.admin||this.isAdmin);}
- get pageTitle():string{return ({dashboard:'Dashboard',catalogo:'Catálogo de impresión',cotizaciones:'Solicitudes y cotizaciones',pedidos:'Pedidos y pagos',pagos:'Registro y verificación de pagos',categorias:'Categorías',servicios:'Gestión del catálogo',disenos:'Diseños y aprobaciones',produccion:'Control de producción',entregas:'Entregas y seguimiento',usuarios:'Usuarios y roles',inventario:'Inventario de insumos',notificaciones:'Centro de notificaciones',reportes:'Reportes y métricas'} as Record<string,string>)[this.page]||'SIGIP';}
+ get visibleMenu():MenuItem[]{return this.menu.filter(item=>this.isAdmin||(!item.admin&&(item.roles??[]).some(role=>this.auth.hasRole(role))));}
+ get workspaceLabel():string{return this.auth.isClient?'PORTAL DEL CLIENTE':'GESTIÓN INTERNA';}
+ get pageTitle():string{return ({dashboard:'Dashboard',catalogo:'Catálogo de impresión',cotizaciones:'Solicitudes y cotizaciones',pedidos:'Pedidos y pagos',pagos:'Registro y verificación de pagos',categorias:'Categorías',servicios:'Gestión del catálogo',disenos:'Diseños y aprobaciones',produccion:'Control de producción',entregas:'Entregas y seguimiento',usuarios:'Seguridad y accesos',inventario:'Inventario de insumos',notificaciones:'Centro de notificaciones',reportes:'Reportes y métricas'} as Record<string,string>)[this.page]||'SIGIP';}
  get userName():string{const u=this.auth.user;return [u?.nombres,u?.apellidos].filter(Boolean).join(' ')||u?.nomusuario||'Usuario';}
  get userInitials():string{return this.userName.split(' ').filter(Boolean).slice(0,2).map(s=>s[0].toUpperCase()).join('')||'S';}
  get filteredOrders():Pedido[]{const t=this.search.trim().toLowerCase();return t?this.orders.filter(o=>`${o.idpedido} ${o.nombreServicio} ${o.estado} ${o.cliente||''}`.toLowerCase().includes(t)):this.orders;}
@@ -91,7 +104,7 @@ export class WorkspaceComponent implements OnInit {
  async saveQuote():Promise<void>{if(!this.quoteOrderId)return;this.error='';try{const id=this.quoteOrderId;await firstValueFrom(this.api.emitQuote(id,{precioUnitario:Number(this.quoteForm.precioUnitario),observacion:this.quoteForm.observacion.trim()}));this.success=`Cotización del pedido #${id} emitida. El cliente podrá confirmarla registrando el pago.`;this.quoteOrderId=null;await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo emitir la cotización. Verifica que sea una solicitud pendiente y que tengas rol ADMIN.');}}
  async verifyPayment(p:Pago,aprobado:boolean):Promise<void>{if(!confirm(`¿Deseas ${aprobado?'aprobar':'rechazar'} el pago #${p.idpago} del pedido #${p.idpedido}?`))return;const observacion=prompt('Observación de la verificación (opcional):');if(observacion===null)return;try{await firstValueFrom(this.api.verifyPayment(p.idpago,{aprobado,observacion}));this.success=`Pago #${p.idpago} ${aprobado?'verificado':'rechazado'}.`;await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo verificar el pago.');}}
  async markDelivered(o:Pedido):Promise<void>{if(!confirm(`¿Registrar la entrega del pedido #${o.idpedido}?`))return;try{await firstValueFrom(this.api.changeOrderState(o.idpedido,{estado:'ENTREGADO',observacion:'Entrega registrada desde SIGIP.'}));this.success=`Pedido #${o.idpedido} marcado como entregado.`;await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo registrar la entrega. Verifica que el pedido esté TERMINADO.');}}
- editUser(u:Usuario):void{if(!u.idusuario)return;this.editingUserId=u.idusuario;this.userForm={nomusuario:u.nomusuario,email:u.email||'',password:'',nombres:u.nombres||'',apellidos:u.apellidos||'',activo:u.activo!==false,rol:u.roles?.includes('ADMIN')?'ADMIN':'CLIENTE'};}
+ editUser(u:Usuario):void{if(!u.idusuario)return;this.editingUserId=u.idusuario;this.userForm={nomusuario:u.nomusuario,email:u.email||'',password:'',nombres:u.nombres||'',apellidos:u.apellidos||'',activo:u.activo!==false,rol:(u.roles?.[0]?.replace(/^ROLE_/i,'').toUpperCase() as 'ADMIN'|'CLIENTE'|'VENTAS'|'CAJA'|'DISENO'|'PRODUCCION'|'ALMACEN')||'CLIENTE'};}
  cancelUserEdit():void{this.editingUserId=null;this.userForm={nomusuario:'',email:'',password:'',nombres:'',apellidos:'',activo:true,rol:'CLIENTE'};}
  async saveUser():Promise<void>{this.error='';const body:UsuarioAdminRequest={nomusuario:this.userForm.nomusuario.trim(),email:this.userForm.email.trim(),password:this.userForm.password,nombres:this.userForm.nombres.trim(),apellidos:this.userForm.apellidos.trim(),activo:this.userForm.activo,roles:[this.userForm.rol]};try{if(this.editingUserId){await firstValueFrom(this.api.updateUser(this.editingUserId,body));this.success='Usuario actualizado.';}else{if(!body.password.trim()){this.error='La contraseña es obligatoria para crear un usuario.';return;}await firstValueFrom(this.api.createUser(body));this.success='Usuario creado.';}this.cancelUserEdit();await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo guardar el usuario. Revisa los datos y el rol ADMIN.');}}
  async deleteUser(u:Usuario):Promise<void>{if(!u.idusuario||!confirm(`¿Eliminar el usuario ${u.nomusuario}?`))return;try{await firstValueFrom(this.api.deleteUser(u.idusuario));this.success='Usuario eliminado.';await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo eliminar el usuario.');}}
