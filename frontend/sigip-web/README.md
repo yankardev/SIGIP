@@ -88,3 +88,8 @@ src/app/app.routes.ts
 ```
 
 Usa Angular standalone, `provideRouter()`, `provideHttpClient()` e interceptor funcional; no depende de NgModules.
+
+
+## Alcance funcional del frontend
+
+La interfaz incluye catálogo, solicitudes/cotizaciones, pedidos, registro y verificación manual de pagos, diseños, producción/calidad, inventario, entregas, usuarios/roles, notificaciones y reportes. No procesa dinero ni integra una pasarela bancaria real. Las cotizaciones se gestionan dentro de `sales-service`; no se crea un microservicio adicional.

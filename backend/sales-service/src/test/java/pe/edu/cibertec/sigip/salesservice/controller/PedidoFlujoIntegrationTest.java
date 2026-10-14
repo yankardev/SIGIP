@@ -54,6 +54,8 @@ class PedidoFlujoIntegrationTest {
                 "Couché", new BigDecimal("95.00"), false, true, 1, "Digital"));
         when(catalogClient.obtenerServicio(2)).thenReturn(new ServicioCatalogoResponse(2, "Descontinuado",
                 null, new BigDecimal("10.00"), false, false, 1, "Digital"));
+        when(catalogClient.obtenerServicio(3)).thenReturn(new ServicioCatalogoResponse(3, "Banner personalizado",
+                "Trabajo a medida", new BigDecimal("20.00"), true, true, 1, "Gran formato"));
     }
 
     private String token(String usuario, String rol) {
@@ -122,6 +124,21 @@ class PedidoFlujoIntegrationTest {
 
         mvc.perform(delete("/api/v1/pedidos/" + id).header("Authorization", token("cliente01", "CLIENTE")))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("ADMIN puede emitir una cotización y el total se calcula con el precio unitario cotizado")
+    void emitirCotizacion() throws Exception {
+        Integer id = idDe(registrarPedido("cliente01", "{\"idservicio\":3,\"cantidad\":2}")
+                .andExpect(status().isCreated()), "idpedido");
+
+        mvc.perform(patch("/api/v1/pedidos/" + id + "/cotizacion").header("Authorization", token("admin", "ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"precioUnitario\":35.50,\"observacion\":\"Incluye acabado mate\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.precioUnitario").value(35.50))
+                .andExpect(jsonPath("$.total").value(71.00))
+                .andExpect(jsonPath("$.observacion").value(org.hamcrest.Matchers.containsString("Cotización emitida")));
     }
 
     @Test

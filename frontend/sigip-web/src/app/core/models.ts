@@ -1,5 +1,7 @@
 export interface Usuario { idusuario?:number; nomusuario:string; email?:string; nombres?:string; apellidos?:string; activo?:boolean; roles?:string[]; }
 export interface LoginResponse { token:string; tipo:string; usuario:Usuario; }
+export interface UsuarioAdminRequest { nomusuario:string; email:string; password:string; nombres:string; apellidos:string; activo:boolean; roles:string[]; }
+export interface Pago { idpago:number; idpedido:number; monto:number; metodo:'YAPE'|'PLIN'|'TRANSFERENCIA'|'EFECTIVO'; numeroOperacion:string; estado:'PENDIENTE'|'VERIFICADO'|'RECHAZADO'; fechaRegistro?:string; fechaVerificacion?:string; verificadoPor?:string; observacion?:string; nombreServicio?:string; cliente?:string; totalPedido?:number; }
 export interface Categoria { idcategoria:number; nombre:string; descripcion?:string; activo?:boolean; }
 export interface ServicioImpresion { idservicio:number; nombre:string; descripcion?:string; precioBase:number; requiereCotizacion:boolean; activo:boolean; idcategoria:number; categoria?:string; }
 export interface Pedido { idpedido:number; cliente?:string; idservicio:number; nombreServicio:string; precioUnitario:number; cantidad:number; total:number; estado:string; siguientesEstados?:string[]; especificaciones?:string; observacion?:string; fechaPedido?:string; fechaActualizacion?:string; }

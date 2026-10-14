@@ -115,6 +115,29 @@ public class PedidoService {
         pedidoRepository.delete(pedido);
     }
 
+    /** Emite el precio final de una solicitud marcada por el catálogo como cotizable. */
+    @Transactional
+    public PedidoResponse emitirCotizacion(Integer id, CotizacionRequest request) {
+        Pedido pedido = buscar(id);
+        exigirEstado(pedido, EstadoPedido.REGISTRADO, "Solo se puede cotizar un pedido en estado REGISTRADO");
+        String notaActual = pedido.getObservacion() == null ? "" : pedido.getObservacion().toLowerCase();
+        boolean cotizable = notaActual.contains("requiere cotización") || notaActual.contains("requiere cotizacion")
+                || notaActual.contains("cotización emitida") || notaActual.contains("cotizacion emitida");
+        if (!cotizable) {
+            throw new ReglaNegocioException("El pedido no está marcado como una solicitud que requiere cotización");
+        }
+        pedido.setPrecioUnitario(request.precioUnitario());
+        pedido.setTotal(calcularTotal(request.precioUnitario(), pedido.getCantidad()));
+        String detalle = request.observacion() == null || request.observacion().isBlank()
+                ? "Precio final definido por personal autorizado. El cliente puede confirmar registrando el pago."
+                : request.observacion().trim();
+        pedido.setObservacion("Cotización emitida: " + detalle);
+        pedido.setFechaActualizacion(LocalDateTime.now());
+        Pedido guardado = pedidoRepository.save(pedido);
+        publicar("COTIZACION_EMITIDA", guardado);
+        return PedidoResponse.from(guardado);
+    }
+
     @Transactional
     public PedidoResponse cambiarEstado(Integer id, CambioEstadoRequest request) {
         Pedido pedido = buscar(id);
