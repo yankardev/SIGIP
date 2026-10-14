@@ -18,7 +18,13 @@ export class PublicCatalogComponent implements OnInit {
   loading = true;
   error = '';
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
+    void this.loadServices();
+  }
+
+  async loadServices(): Promise<void> {
+    this.loading = true;
+    this.error = '';
     try {
       this.services = await firstValueFrom(this.api.services(true));
     } catch {
