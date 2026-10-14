@@ -7,7 +7,7 @@
     <a class="back-link" routerLink="/inicio">← Volver al inicio</a>
     <div class="catalog-heading"><div><span class="eyebrow">CATÁLOGO PARA CLIENTES</span><h1>Encuentra el servicio<br><em>que tu proyecto necesita.</em></h1></div><p>Explora los servicios disponibles. Algunos trabajos requieren una cotización personalizada antes de confirmar el pedido.</p></div>
     <div class="catalog-loading" *ngIf="loading">Cargando servicios disponibles…</div>
-    <div class="catalog-error" *ngIf="error">{{error}} <button type="button" (click)="ngOnInit()">Reintentar</button></div>
+    <div class="catalog-error" *ngIf="error">{{error}} <button type="button" (click)="loadServices()">Reintentar</button></div>
     <div class="service-grid" *ngIf="!loading&&!error">
       <article class="service-card" *ngFor="let s of services">
         <div class="service-card-top"><span class="service-symbol">✳</span><span class="quote-pill" *ngIf="s.requiereCotizacion">Cotización personalizada</span><span class="price-pill" *ngIf="!s.requiereCotizacion">Precio base</span></div>
