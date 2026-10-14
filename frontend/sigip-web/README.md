@@ -2,10 +2,16 @@
 
 Frontend SPA del **Sistema Integral de Gestión de Impresión y Pedidos (SIGIP)**, conectado al backend de microservicios a través del API Gateway.
 
+## Dos vistas de SIGIP
+
+- **Vista externa (pública):** página de inicio, catálogo de servicios y solicitud de impresión. El catálogo permite seleccionar un servicio y conserva esa selección durante el registro y el inicio de sesión para abrir el formulario del pedido con el servicio preseleccionado.
+- **Vista interna (personal):** espacio de trabajo para ventas, caja, diseño, producción, almacén y administración, con navegación filtrada por rol.
+- **Seguridad y accesos:** el administrador genera cuentas internas o de cliente, asigna el rol y administra las cuentas. Los guards del frontend mejoran la navegación; las reglas de autorización del backend son las que protegen los endpoints.
+
 ## Funcionalidades incluidas
 
-- Inicio de sesión JWT, registro de clientes, guard de rutas e interceptor Bearer.
-- Resumen general y catálogo de servicios.
+- Inicio de sesión JWT, registro público de clientes, guards de autenticación/roles e interceptor Bearer.
+- Dashboard adaptado al portal del cliente o a la gestión interna y catálogo público/interno.
 - Registro y seguimiento de pedidos.
 - Registro de pago para revisión manual (no procesa dinero ni integra una pasarela).
 - CRUD de categorías y servicios para administradores.
@@ -16,7 +22,7 @@ Frontend SPA del **Sistema Integral de Gestión de Impresión y Pedidos (SIGIP)*
 
 ## Instalar en el repositorio
 
-Descomprime este ZIP dentro de la carpeta raíz `SIGIP/frontend/`. Debe quedar `SIGIP/frontend/sigip-web/`. Abre Git Bash dentro de esa carpeta y ejecuta:
+Actualiza la rama `feature/sigip-completo` desde la raíz del repositorio. Abre Git Bash dentro de `frontend/sigip-web/` y ejecuta:
 
 ```bash
 npm install
@@ -49,9 +55,10 @@ docker compose up -d --build api-gateway
 
 ## Acceso y pruebas
 
-- Cliente: crea una cuenta desde la pantalla de registro y luego inicia sesión.
-- Administrador: usa las credenciales configuradas en `SIGIP_ADMIN_USERNAME`, `SIGIP_ADMIN_EMAIL` y `SIGIP_ADMIN_PASSWORD`.
-- El backend es quien determina los permisos; ocultar opciones en el frontend no reemplaza las reglas de seguridad.
+- Cliente: entra por `/` o `/inicio`, explora `/catalogo-publico` y crea una cuenta para registrar el pedido.
+- Personal interno: inicia sesión; el menú se filtra por rol: `VENTAS`, `CAJA`, `DISENO`, `PRODUCCION`, `ALMACEN` o `ADMIN`.
+- Administrador: usa las credenciales configuradas en `SIGIP_ADMIN_USERNAME`, `SIGIP_ADMIN_EMAIL` y `SIGIP_ADMIN_PASSWORD`. En `/seguridad` puede generar accesos y asignar roles.
+- Los roles operativos se crean al arrancar `auth-service`. Reconstruye ese servicio para que se ejecuten los cambios del inicializador.
 - El registro de pago solo envía monto, método y número de operación al backend para revisión manual.
 - La pantalla de diseños envía el nombre y la URL del archivo. El backend actual no recibe archivos binarios.
 - Las pantallas consultan los endpoints reales; si un servicio falla, se muestra un aviso en lugar de inventar datos.
@@ -78,8 +85,11 @@ src/app/core/
   auth.interceptor.ts
   auth.guard.ts
   admin.guard.ts
+  role.guard.ts
   models.ts
 src/app/pages/
+  landing.component.*
+  public-catalog.component.*
   login.component.*
   register.component.*
   workspace.component.*
