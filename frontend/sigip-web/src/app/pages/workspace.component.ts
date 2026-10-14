@@ -55,7 +55,7 @@ export class WorkspaceComponent implements OnInit {
  get deliveryOrders():Pedido[]{return this.orders.filter(o=>['TERMINADO','ENTREGADO'].includes(o.estado));}
  isQuoteOrder(o:Pedido):boolean{const note=(o.observacion||'').toLocaleLowerCase('es-PE');return note.includes('cotización')||note.includes('cotizacion');}
  isQuotePending(o:Pedido):boolean{const note=(o.observacion||'').toLocaleLowerCase('es-PE');return note.includes('requiere cotización')||note.includes('requiere cotizacion')||note.includes('precio referencial');}
- ngOnInit():void{this.route.data.subscribe(data=>{this.page=String(data['page']||'dashboard');void this.loadPage();});}
+ ngOnInit():void{this.route.data.subscribe(data=>{this.page=String(data['page']||'dashboard');void this.loadPage();});this.route.queryParamMap.subscribe(params=>{const id=Number(params.get('servicio'));if(id>0)this.orderForm.idservicio=id;});}
  private async safe<T>(request:Observable<T>,fallback:T):Promise<T>{try{return await firstValueFrom(request);}catch{this.failures++;return fallback;}}
  async loadPage():Promise<void>{
   this.loading=true;this.error='';this.failures=0;
