@@ -45,7 +45,7 @@ public class PedidoService {
     @Transactional(readOnly = true)
     public List<PedidoResponse> listar(UsuarioActual usuario, EstadoPedido estado) {
         List<Pedido> pedidos;
-        if (!usuario.esAdmin()) {
+        if (!usuario.esPersonalInterno()) {
             pedidos = pedidoRepository.findByClienteOrderByFechaPedidoDesc(usuario.nombre());
         } else if (estado != null) {
             pedidos = pedidoRepository.findByEstadoOrderByFechaPedidoDesc(estado);
