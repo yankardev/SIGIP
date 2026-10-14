@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/ordenes-produccion")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN','PRODUCCION')")
 public class OrdenProduccionController {
 
     private final OrdenProduccionService service;
