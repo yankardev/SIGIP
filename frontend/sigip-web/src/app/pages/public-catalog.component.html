@@ -1,0 +1,25 @@
+<div class="catalog-page">
+  <header class="catalog-nav">
+    <a class="brand" routerLink="/inicio"><span class="brand-mark">S</span><span><strong>SIGIP</strong><small>Servicios de impresión</small></span></a>
+    <div class="catalog-nav-actions"><a routerLink="/inicio">Inicio</a><a routerLink="/login">Iniciar sesión</a><a class="catalog-button" routerLink="/registro">Crear cuenta ↗</a></div>
+  </header>
+  <main class="catalog-main">
+    <a class="back-link" routerLink="/inicio">← Volver al inicio</a>
+    <div class="catalog-heading"><div><span class="eyebrow">CATÁLOGO PARA CLIENTES</span><h1>Encuentra el servicio<br><em>que tu proyecto necesita.</em></h1></div><p>Explora los servicios disponibles. Algunos trabajos requieren una cotización personalizada antes de confirmar el pedido.</p></div>
+    <div class="catalog-loading" *ngIf="loading">Cargando servicios disponibles…</div>
+    <div class="catalog-error" *ngIf="error">{{error}} <button type="button" (click)="loadServices()">Reintentar</button></div>
+    <div class="service-grid" *ngIf="!loading&&!error">
+      <article class="service-card" *ngFor="let s of services">
+        <div class="service-card-top"><span class="service-symbol">✳</span><span class="quote-pill" *ngIf="s.requiereCotizacion">Cotización personalizada</span><span class="price-pill" *ngIf="!s.requiereCotizacion">Precio base</span></div>
+        <span class="service-category">{{s.categoria||'SERVICIO DE IMPRESIÓN'}}</span>
+        <h2>{{s.nombre}}</h2><p>{{s.descripcion||'Servicio disponible para solicitudes de impresión.'}}</p>
+        <div class="service-price" *ngIf="!s.requiereCotizacion">Desde <strong>S/ {{s.precioBase|number:'1.2-2'}}</strong></div>
+        <div class="service-price quote-price" *ngIf="s.requiereCotizacion"><strong>A cotizar</strong><small>Según las características del trabajo</small></div>
+        <button class="service-action" type="button" (click)="requestService(s)">Solicitar este servicio <span>→</span></button>
+      </article>
+      <div class="empty-catalog" *ngIf="services.length===0"><strong>Estamos preparando el catálogo.</strong><p>Por el momento no hay servicios activos publicados.</p></div>
+    </div>
+    <section class="catalog-help"><div><span class="eyebrow">¿YA TIENES UNA CUENTA?</span><h2>Continúa con tu pedido.</h2><p>Ingresa para registrar solicitudes, revisar cotizaciones y consultar el estado de tus pedidos.</p></div><a class="catalog-button" routerLink="/login">Entrar a mi cuenta →</a></section>
+  </main>
+  <footer class="catalog-footer"><span>© SIGIP · Sistema Integral de Gestión de Impresión y Pedidos</span><a routerLink="/login">Acceso al personal</a></footer>
+</div>

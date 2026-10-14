@@ -1,0 +1,15 @@
+import { Injectable } from '@angular/core';
+import { Usuario } from './models';
+@Injectable({providedIn:'root'})
+export class AuthService {
+ private readonly tokenKey='sigip_token'; private readonly userKey='sigip_user';
+ get token():string|null{return localStorage.getItem(this.tokenKey);}
+ get user():Usuario|null{const raw=localStorage.getItem(this.userKey);if(!raw)return null;try{return JSON.parse(raw) as Usuario;}catch{return null;}}
+ get isAuthenticated():boolean{return Boolean(this.token);}
+ setSession(token:string,user:Usuario):void{localStorage.setItem(this.tokenKey,token);localStorage.setItem(this.userKey,JSON.stringify(user));}
+ logout():void{localStorage.removeItem(this.tokenKey);localStorage.removeItem(this.userKey);}
+ get roles():string[]{return (this.user?.roles??[]).map(role=>role.replace(/^ROLE_/i,'').toUpperCase());}
+ hasRole(...roles:string[]):boolean{return this.roles.some(role=>roles.map(value=>value.toUpperCase().replace(/^ROLE_/,'')).includes(role));}
+ get isAdmin():boolean{return this.hasRole('ADMIN');}
+ get isClient():boolean{return this.hasRole('CLIENTE')&&!this.isAdmin;}
+}

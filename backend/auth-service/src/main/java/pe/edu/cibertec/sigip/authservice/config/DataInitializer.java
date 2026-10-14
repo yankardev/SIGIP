@@ -33,6 +33,11 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         Rol cliente = crearRolSiNoExiste("CLIENTE");
         Rol admin = crearRolSiNoExiste("ADMIN");
+        crearRolSiNoExiste("VENTAS");
+        crearRolSiNoExiste("CAJA");
+        crearRolSiNoExiste("DISENO");
+        crearRolSiNoExiste("PRODUCCION");
+        crearRolSiNoExiste("ALMACEN");
 
         if (!adminPassword.isBlank() && !usuarioRepository.existsByNomusuario(adminUsername)) {
             Usuario usuario = Usuario.builder()

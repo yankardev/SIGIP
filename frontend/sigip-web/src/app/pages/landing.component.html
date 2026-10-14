@@ -1,0 +1,65 @@
+<div class="public-shell">
+  <header class="public-nav">
+    <a class="brand" routerLink="/inicio" aria-label="SIGIP inicio">
+      <span class="brand-mark">S</span>
+      <span><strong>SIGIP</strong><small>Impresión y gestión de pedidos</small></span>
+    </a>
+    <nav aria-label="Navegación principal">
+      <a routerLink="/catalogo-publico">Catálogo</a>
+      <a href="#como-funciona">Cómo funciona</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="login-link" routerLink="/login">Iniciar sesión</a>
+      <a class="button button-small" routerLink="/registro">Crear cuenta <span>↗</span></a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="eyebrow-dot"></span> TU IDEA, NUESTRO SIGUIENTE PROYECTO</span>
+        <h1>De una buena idea<br> a una <em>gran impresión.</em></h1>
+        <p class="hero-description">Solicita tus trabajos de impresión, recibe cotizaciones y sigue cada etapa de tu pedido desde un solo lugar.</p>
+        <div class="hero-actions">
+          <a class="button" routerLink="/catalogo-publico">Explorar servicios <span>→</span></a>
+          <a class="secondary-link" routerLink="/registro">Quiero solicitar un pedido <span>↗</span></a>
+        </div>
+        <div class="hero-proof"><span class="proof-icon">✓</span><span>Solicitudes organizadas</span><span class="proof-divider"></span><span class="proof-icon">✓</span><span>Seguimiento de principio a fin</span></div>
+      </div>
+      <div class="hero-visual" aria-label="Ilustración de piezas impresas">
+        <div class="visual-glow"></div>
+        <div class="print-sheet sheet-back"><span>IDEAS<br>EN PAPEL</span><i>✳</i></div>
+        <div class="print-sheet sheet-mid"><span>CREA<br>ALGO<br>ÚNICO</span><i>↗</i></div>
+        <div class="print-sheet sheet-front"><span class="sheet-label">SIGIP / PRINT STUDIO</span><div class="sheet-art"><b></b><b></b><b></b></div><strong>Tu marca.<br>Tu estilo.</strong><small>DISEÑO · IMPRESIÓN · ENTREGA</small></div>
+        <div class="floating-chip chip-top"><span>✦</span> Diseño y calidad</div>
+        <div class="floating-chip chip-bottom"><span class="chip-check">✓</span> Pedido bajo seguimiento</div>
+      </div>
+    </section>
+
+    <section class="service-strip">
+      <div><span class="strip-number">01</span><strong>Explora</strong><small>Conoce nuestros servicios</small></div>
+      <span class="strip-arrow">→</span>
+      <div><span class="strip-number">02</span><strong>Solicita</strong><small>Cuéntanos qué necesitas</small></div>
+      <span class="strip-arrow">→</span>
+      <div><span class="strip-number">03</span><strong>Confirma</strong><small>Revisa tu cotización y pago</small></div>
+      <span class="strip-arrow">→</span>
+      <div><span class="strip-number">04</span><strong>Recibe</strong><small>Sigue el estado de tu pedido</small></div>
+    </section>
+
+    <section class="services-section" id="como-funciona">
+      <div class="section-intro"><div><span class="eyebrow">UN PROCESO MÁS SIMPLE</span><h2>Todo tu pedido,<br><em>en un solo espacio.</em></h2></div><p>Desde la primera solicitud hasta la entrega, SIGIP conecta la experiencia del cliente con el trabajo interno de la empresa.</p></div>
+      <div class="feature-grid">
+        <article class="feature-card"><span class="feature-icon icon-cyan">▤</span><span class="feature-index">01 / CLIENTE</span><h3>Solicita en línea</h3><p>Revisa el catálogo, registra las especificaciones y solicita una cotización cuando el trabajo lo requiera.</p><a routerLink="/catalogo-publico">Ver catálogo <span>→</span></a></article>
+        <article class="feature-card"><span class="feature-icon icon-purple">◈</span><span class="feature-index">02 / COLABORACIÓN</span><h3>Aprueba tu diseño</h3><p>Consulta las propuestas, revisa las versiones y comunica si el diseño está listo o necesita ajustes.</p><a routerLink="/login">Entrar a mi cuenta <span>→</span></a></article>
+        <article class="feature-card"><span class="feature-icon icon-orange">⇢</span><span class="feature-index">03 / SEGUIMIENTO</span><h3>Conoce el avance</h3><p>Consulta los estados de tu pedido y las notificaciones de las etapas registradas en el sistema.</p><a routerLink="/registro">Comenzar ahora <span>→</span></a></article>
+      </div>
+    </section>
+
+    <section class="internal-callout">
+      <div><span class="eyebrow light">ESPACIO DE TRABAJO INTERNO</span><h2>Un flujo conectado.<br><em>Un equipo coordinado.</em></h2><p>El personal autorizado gestiona ventas, caja, diseño, producción, inventario, entregas y reportes según los permisos de su rol.</p></div>
+      <a class="button button-light" routerLink="/login-interno">Acceso al personal <span>→</span></a>
+    </section>
+  </main>
+
+  <footer class="public-footer"><a class="brand" routerLink="/inicio"><span class="brand-mark">S</span><span><strong>SIGIP</strong><small>Sistema Integral de Gestión de Impresión y Pedidos</small></span></a><span>© SIGIP · Plataforma de clientes y gestión interna</span><a routerLink="/login-interno">Acceso del personal ↗</a></footer>
+</div>
