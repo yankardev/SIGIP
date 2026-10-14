@@ -34,19 +34,19 @@ public class DisenoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','DISENO')")
     public ResponseEntity<DisenoResponse> registrar(@Valid @RequestBody DisenoRequest request, Authentication auth) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.registrar(request, UsuarioActual.de(auth)));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','DISENO')")
     public ResponseEntity<DisenoResponse> actualizar(@PathVariable Integer id, @Valid @RequestBody DisenoRequest request) {
         return ResponseEntity.ok(service.actualizar(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','DISENO')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         service.eliminar(id);
         return ResponseEntity.noContent().build();
