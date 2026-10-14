@@ -80,7 +80,11 @@ public class PagoService {
 
     @Transactional(readOnly = true)
     public List<PagoResponse> listarPorPedido(Integer idpedido, UsuarioActual usuario) {
-        pedidoService.buscarVisible(idpedido, usuario);
+        if (usuario.esPersonalInterno()) {
+            pedidoService.buscar(idpedido);
+        } else {
+            pedidoService.buscarVisible(idpedido, usuario);
+        }
         return pagoRepository.findByPedidoIdpedidoOrderByFechaRegistroDesc(idpedido).stream()
                 .map(PagoResponse::from)
                 .toList();
