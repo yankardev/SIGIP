@@ -64,7 +64,8 @@ export class WorkspaceComponent implements OnInit {
     case'dashboard':
      [this.orders,this.services]=await Promise.all([this.safe(this.api.orders(),[]),this.safe(this.api.services(true),[])]);
      this.unreadCount=Number((await this.safe(this.api.unreadCount(),{noLeidas:0})).noLeidas||0);
-     if(this.isAdmin){this.report=await this.safe(this.api.reportDashboard(),{});this.supplies=await this.safe(this.api.supplies(),[]);}
+     if(this.isAdmin||this.auth.hasRole('VENTAS')||this.auth.hasRole('CAJA'))this.report=await this.safe(this.api.reportDashboard(),{});
+     if(this.isAdmin||this.auth.hasRole('ALMACEN'))this.supplies=await this.safe(this.api.supplies(),[]);
      break;
     case'catalogo':[this.services,this.categories]=await Promise.all([this.safe(this.api.services(true),[]),this.safe(this.api.categories(),[])]);break;
     case'cotizaciones':this.orders=await this.safe(this.api.orders(),[]);break;
@@ -81,7 +82,8 @@ export class WorkspaceComponent implements OnInit {
      this.notifications=await this.safe(this.api.notifications(),[]);
      this.unreadCount=Number((await this.safe(this.api.unreadCount(),{noLeidas:0})).noLeidas||0);break;
     case'reportes':
-     [this.report,this.orders,this.supplies]=await Promise.all([this.safe(this.api.reportDashboard(),{}),this.safe(this.api.orders(),[]),this.safe(this.api.supplies(),[])]);break;
+     [this.report,this.orders]=await Promise.all([this.safe(this.api.reportDashboard(),{}),this.safe(this.api.orders(),[])]);
+     if(this.isAdmin||this.auth.hasRole('ALMACEN'))this.supplies=await this.safe(this.api.supplies(),[]);break;
    }
    if(this.failures)this.error='No se pudieron cargar algunos datos. Comprueba que los microservicios estén activos y vuelve a actualizar.';
   }finally{this.loading=false;}
