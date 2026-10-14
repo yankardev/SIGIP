@@ -62,14 +62,14 @@ public class PedidoController {
 
     /** Emite o actualiza la cotización comercial sin crear otro microservicio. */
     @PatchMapping("/{id}/cotizacion")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS')")
     public ResponseEntity<PedidoResponse> emitirCotizacion(@PathVariable Integer id,
                                                            @Valid @RequestBody CotizacionRequest request) {
         return ResponseEntity.ok(pedidoService.emitirCotizacion(id, request));
     }
 
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS','PRODUCCION')")
     public ResponseEntity<PedidoResponse> cambiarEstado(@PathVariable Integer id,
                                                         @Valid @RequestBody CambioEstadoRequest request) {
         return ResponseEntity.ok(pedidoService.cambiarEstado(id, request));
