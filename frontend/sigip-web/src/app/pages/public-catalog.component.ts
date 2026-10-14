@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../core/api.service';
+import { AuthService } from '../core/auth.service';
 import { ServicioImpresion } from '../core/models';
 
 @Component({
@@ -14,12 +15,25 @@ import { ServicioImpresion } from '../core/models';
 })
 export class PublicCatalogComponent implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   services: ServicioImpresion[] = [];
   loading = true;
   error = '';
 
   ngOnInit(): void {
     void this.loadServices();
+  }
+
+  requestService(service: ServicioImpresion): void {
+    const queryParams = { servicio: service.idservicio };
+    if (this.auth.isAuthenticated && this.auth.isClient) {
+      void this.router.navigate(['/pedidos'], { queryParams });
+    } else if (this.auth.isAuthenticated) {
+      void this.router.navigate(['/dashboard']);
+    } else {
+      void this.router.navigate(['/registro'], { queryParams });
+    }
   }
 
   async loadServices(): Promise<void> {
