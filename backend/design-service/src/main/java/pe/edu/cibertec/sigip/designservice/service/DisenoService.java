@@ -40,13 +40,13 @@ public class DisenoService {
         List<Diseno> disenos;
         if (idpedido != null) {
             disenos = disenoRepository.findByIdpedidoOrderByVersionDesc(idpedido);
-        } else if (usuario.esAdmin()) {
+        } else if (usuario.esPersonalInterno()) {
             disenos = disenoRepository.findAllByOrderByFechaRegistroDesc();
         } else {
             disenos = disenoRepository.findByClienteOrderByFechaRegistroDesc(usuario.nombre());
         }
         return disenos.stream()
-                .filter(d -> usuario.esAdmin() || d.getCliente().equals(usuario.nombre()))
+                .filter(d -> usuario.esPersonalInterno() || d.getCliente().equals(usuario.nombre()))
                 .map(DisenoResponse::from)
                 .toList();
     }
