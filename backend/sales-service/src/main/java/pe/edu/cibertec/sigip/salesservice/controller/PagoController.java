@@ -19,7 +19,7 @@ public class PagoController {
     private final PagoService pagoService;
 
     @PostMapping("/{id}/verificacion")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','CAJA')")
     public ResponseEntity<PagoResponse> verificar(@PathVariable Integer id,
                                                   @Valid @RequestBody VerificacionPagoRequest request,
                                                   Authentication auth) {
