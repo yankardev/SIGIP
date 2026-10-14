@@ -15,7 +15,7 @@
         <h2>{{s.nombre}}</h2><p>{{s.descripcion||'Servicio disponible para solicitudes de impresión.'}}</p>
         <div class="service-price" *ngIf="!s.requiereCotizacion">Desde <strong>S/ {{s.precioBase|number:'1.2-2'}}</strong></div>
         <div class="service-price quote-price" *ngIf="s.requiereCotizacion"><strong>A cotizar</strong><small>Según las características del trabajo</small></div>
-        <a class="service-action" routerLink="/registro">Solicitar este servicio <span>→</span></a>
+        <button class="service-action" type="button" (click)="requestService(s)">Solicitar este servicio <span>→</span></button>
       </article>
       <div class="empty-catalog" *ngIf="services.length===0"><strong>Estamos preparando el catálogo.</strong><p>Por el momento no hay servicios activos publicados.</p></div>
     </div>
