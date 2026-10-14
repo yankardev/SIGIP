@@ -8,5 +8,8 @@ export class AuthService {
  get isAuthenticated():boolean{return Boolean(this.token);}
  setSession(token:string,user:Usuario):void{localStorage.setItem(this.tokenKey,token);localStorage.setItem(this.userKey,JSON.stringify(user));}
  logout():void{localStorage.removeItem(this.tokenKey);localStorage.removeItem(this.userKey);}
- get isAdmin():boolean{return (this.user?.roles??[]).some(role=>['ADMIN','ROLE_ADMIN'].includes(role.toUpperCase()));}
+ get roles():string[]{return (this.user?.roles??[]).map(role=>role.replace(/^ROLE_/i,'').toUpperCase());}
+ hasRole(...roles:string[]):boolean{return this.roles.some(role=>roles.map(value=>value.toUpperCase().replace(/^ROLE_/,'')).includes(role));}
+ get isAdmin():boolean{return this.hasRole('ADMIN');}
+ get isClient():boolean{return this.hasRole('CLIENTE')&&!this.isAdmin;}
 }
