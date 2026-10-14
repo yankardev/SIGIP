@@ -22,7 +22,7 @@ export class WorkspaceComponent implements OnInit {
  readonly roleOptions:Array<{value:'CLIENTE'|'ADMIN'|'VENTAS'|'CAJA'|'DISENO'|'PRODUCCION'|'ALMACEN';label:string}>=[
   {value:'CLIENTE',label:'Cliente externo'},{value:'VENTAS',label:'Ventas y cotizaciones'},{value:'CAJA',label:'Caja y pagos'},
   {value:'DISENO',label:'Diseño gráfico'},{value:'PRODUCCION',label:'Producción y calidad'},{value:'ALMACEN',label:'Almacén e inventario'},{value:'ADMIN',label:'Administrador del sistema'}
- ];editingUserId:number|null=null;
+ ];
  designForm={idpedido:0,nombreArchivo:'',urlArchivo:'',descripcion:''};
  productionForm={idpedido:0,prioridad:'MEDIA',responsable:'',observacion:''};
  supplyForm={codigo:'',nombre:'',unidadMedida:'unidad',stockActual:0,stockMinimo:0,activo:true};
