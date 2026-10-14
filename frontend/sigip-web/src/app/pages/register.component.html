@@ -1,0 +1,12 @@
+<div class="auth-layout">
+ <section class="auth-brand-panel"><div class="auth-brand"><div class="brand-mark large">S</div><div><strong>SIGIP</strong><span>Sistema Integral de Gestión de Impresión y Pedidos</span></div></div>
+ <div class="auth-pitch"><span class="eyebrow light">TU PROYECTO, EN MARCHA</span><h1>Tu próxima<br>idea <span>empieza aquí.</span></h1><p>Crea tu cuenta para solicitar servicios de impresión y seguir el estado de tus pedidos.</p><div class="feature-line"><span>01</span> Catálogo de servicios</div><div class="feature-line"><span>02</span> Pagos para revisión manual</div><div class="feature-line"><span>03</span> Seguimiento de pedidos</div></div><div class="auth-footer">SIGIP · Proyecto académico Cibertec</div></section>
+ <section class="auth-form-panel"><div class="auth-form-wrap"><div class="mobile-brand"><div class="brand-mark">S</div><strong>SIGIP</strong></div><span class="eyebrow">REGISTRO DE CLIENTE</span><h2>Crea tu cuenta</h2><p class="muted">Completa los datos para empezar.</p>
+ <div class="alert error" *ngIf="error">{{error}}</div><div class="alert success" *ngIf="success">{{success}}</div>
+ <form (ngSubmit)="submit()" #registerForm="ngForm"><div class="form-two"><div><label for="nombres">Nombres</label><input id="nombres" name="nombres" [(ngModel)]="form.nombres" required></div><div><label for="apellidos">Apellidos</label><input id="apellidos" name="apellidos" [(ngModel)]="form.apellidos" required></div></div>
+ <label for="nomusuario">Nombre de usuario</label><input id="nomusuario" name="nomusuario" [(ngModel)]="form.nomusuario" minlength="4" maxlength="50" required autocomplete="username">
+ <label for="email">Correo electrónico</label><input id="email" name="email" type="email" [(ngModel)]="form.email" required autocomplete="email">
+ <label for="password">Contraseña</label><input id="password" name="password" type="password" [(ngModel)]="form.password" minlength="8" required autocomplete="new-password">
+ <p class="tiny-note">El backend exige usuario de 4 caracteres como mínimo y contraseña de 8.</p><button class="primary-btn full" type="submit" [disabled]="registerForm.invalid||loading">{{loading?'Creando cuenta...':'Crear cuenta →'}}</button></form>
+ <p class="switch-auth">¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a></p></div></section>
+</div>

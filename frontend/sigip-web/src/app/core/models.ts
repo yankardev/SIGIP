@@ -1,0 +1,9 @@
+export interface Usuario { idusuario?:number; nomusuario:string; email?:string; nombres?:string; apellidos?:string; activo?:boolean; roles?:string[]; }
+export interface LoginResponse { token:string; tipo:string; usuario:Usuario; }
+export interface Categoria { idcategoria:number; nombre:string; descripcion?:string; activo?:boolean; }
+export interface ServicioImpresion { idservicio:number; nombre:string; descripcion?:string; precioBase:number; requiereCotizacion:boolean; activo:boolean; idcategoria:number; categoria?:string; }
+export interface Pedido { idpedido:number; cliente?:string; idservicio:number; nombreServicio:string; precioUnitario:number; cantidad:number; total:number; estado:string; siguientesEstados?:string[]; especificaciones?:string; observacion?:string; fechaPedido?:string; fechaActualizacion?:string; }
+export interface Diseno { iddiseno:number; idpedido:number; cliente?:string; version?:number; nombreArchivo:string; urlArchivo?:string; descripcion?:string; estado:string; comentarioCliente?:string; registradoPor?:string; fechaRegistro?:string; fechaDecision?:string; }
+export interface OrdenProduccion { idorden:number; idpedido:number; descripcionTrabajo?:string; estado:string; prioridad:string; responsable?:string; reprocesos?:number; fechaRegistro?:string; fechaInicio?:string; fechaFin?:string; observacion?:string; }
+export interface Insumo { idinsumo:number; codigo:string; nombre:string; unidadMedida:string; stockActual:number; stockMinimo:number; activo:boolean; bajoStock:boolean; }
+export interface Notificacion { idnotificacion:number; destinatario?:string; canal?:string; asunto:string; mensaje:string; estado:string; idpedido?:number; fecha?:string; fechaLectura?:string; }
