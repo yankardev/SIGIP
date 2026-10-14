@@ -1,5 +1,5 @@
 // Alternativa a GitHub Actions: el mismo pipeline en Jenkins (requiere JDK 25 y Maven configurados
-// en "Global Tool Configuration" con los nombres jdk25 y maven3, y Docker en el agente).
+// en "Global Tool Configuration" con los nombres jdk25 y maven3, Node 22 y Docker en el agente).
 pipeline {
     agent any
     tools {
@@ -24,6 +24,18 @@ pipeline {
                 }
             }
         }
+        stage('Frontend Angular') {
+            steps {
+                dir('frontend') {
+                    sh 'npm ci'
+                    sh 'npm test'
+                    sh 'npm run build'
+                }
+            }
+            post {
+                success { archiveArtifacts artifacts: 'frontend/dist/frontend/browser/**' }
+            }
+        }
         stage('Imágenes Docker') {
             when { branch 'main' }
             steps {
@@ -34,6 +46,7 @@ pipeline {
                     servicios.each { s ->
                         sh "docker build --build-arg SERVICE=${s} -t sigip/${s}:${env.BUILD_NUMBER} ."
                     }
+                    sh "docker build -t sigip/frontend:${env.BUILD_NUMBER} frontend"
                 }
             }
         }

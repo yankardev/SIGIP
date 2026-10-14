@@ -2,7 +2,7 @@
 
 ## Estado de entrega
 
-Implementado y probado: autenticación (SIGIP-01/02), catálogo (03), repositorios con pruebas (04), Eureka/Gateway/Feign (06), diseño con versiones (09), pagos con verificación (10), producción con calidad y reproceso (12), eventos RabbitMQ con idempotencia y DLQ (13). Pendiente: Angular (05), proforma PDF (07-08) y reservas de stock por pedido (11). `mvn clean verify` ejecuta 78 pruebas en verde.
+Implementado y probado: autenticación (SIGIP-01/02), catálogo (03), repositorios con pruebas (04), Eureka/Gateway/Feign (06), diseño con versiones (09), pagos con verificación (10), producción con calidad y reproceso (12), eventos RabbitMQ con idempotencia y DLQ (13). Frontend Angular (05) implementado en `frontend/` con 14 pruebas Vitest y prueba de punta a punta en navegador. Pendiente: proforma PDF (07-08) y reservas de stock por pedido (11). `mvn clean verify` ejecuta 78 pruebas en verde.
 
 ## Incrementos
 

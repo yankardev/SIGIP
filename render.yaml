@@ -19,6 +19,18 @@ envVarGroups:
         value: "-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k"
 
 services:
+  # Frontend Angular (nginx). API_GATEWAY_URL = URL pública de sigip-gateway, p. ej. https://sigip-gateway.onrender.com
+  - type: web
+    name: sigip-frontend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    healthCheckPath: /
+    envVars:
+      - key: API_GATEWAY_URL
+        sync: false
+
   - type: web
     name: sigip-gateway
     runtime: docker

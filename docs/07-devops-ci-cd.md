@@ -34,6 +34,11 @@ push / PR ─► build-test ─────────────────�
              ├ mvn -B clean verify
              ├ resumen de la optimización en la página del run
              └ artefactos: surefire-reports, jacoco
+
+          ─► frontend ───────────────────────────────► docker-frontend (imagen nginx)
+             ├ Node 22 + caché de npm
+             ├ npm ci · npm test (Vitest) · npm run build
+             └ artefacto: frontend-dist
 ```
 
 - Si una prueba falla, el job queda en rojo y el pull request no se debería fusionar.
@@ -41,7 +46,7 @@ push / PR ─► build-test ─────────────────�
 - La caché de dependencias Maven reduce el tiempo del build en las siguientes ejecuciones.
 
 **Alternativa Jenkins:** el `Jenkinsfile` de la raíz define las mismas etapas (checkout, `mvn verify`,
-publicación de JUnit/JaCoCo y construcción de imágenes en `main`).
+publicación de JUnit/JaCoCo, etapa del frontend con `npm ci/test/build` y construcción de imágenes en `main`).
 
 ## 4. Contenedores con Docker
 
@@ -54,8 +59,11 @@ docker build --build-arg SERVICE=sales-service -t sigip/sales-service .
 1. Etapa `build` (maven + JDK 25): compila solo el módulo pedido y sus dependencias (`-pl ... -am`).
 2. Etapa final (`eclipse-temurin:25-jre`): solo el JRE y el `.jar`, con usuario sin privilegios.
 
+El frontend tiene su propio `frontend/Dockerfile`: compila con `node:22-alpine` y sirve el resultado con
+`nginx:1.27-alpine`, que además reenvía `/api/*` al gateway (`API_GATEWAY_URL`).
+
 `docker-compose.yml` levanta el sistema completo: MySQL (con el script que crea las 7 bases), RabbitMQ,
-Eureka, el gateway y los 8 servicios. Las claves se leen de `.env` (plantilla en `.env.example`).
+Eureka, el gateway, los 8 servicios y el frontend (`http://localhost:4200`). Las claves se leen de `.env` (plantilla en `.env.example`).
 
 ```bash
 cp .env.example .env

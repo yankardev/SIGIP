@@ -48,5 +48,5 @@
 ## Próximo trabajo sugerido
 
 1. Desplegar en Render siguiendo `docs/09-despliegue-nube.md` y grabar el video de demo.
-2. Frontend Angular (`frontend/sigip-web`) consumiendo el gateway (CORS ya configurado para `localhost:4200`).
+2. ~~Frontend Angular consumiendo el gateway~~ Hecho en `frontend/` (ver `docs/10-frontend.md`).
 3. Proforma en PDF y carga real de archivos de diseño (hoy se registra la URL del archivo).

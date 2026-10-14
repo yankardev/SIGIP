@@ -25,7 +25,7 @@ Hay dos caminos. **Recomiendo la opción A** porque no necesitas instalar Java 2
    ```powershell
    [Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))
    ```
-4. Levanta todo (la primera vez tarda porque compila los 10 servicios dentro de Docker):
+4. Levanta todo (la primera vez tarda porque compila los 10 servicios y el frontend dentro de Docker):
    ```powershell
    docker compose up -d --build
    ```
@@ -34,7 +34,10 @@ Hay dos caminos. **Recomiendo la opción A** porque no necesitas instalar Java 2
    docker compose ps
    ```
    Todos deben decir `running` o `healthy`. Si alguno falla: `docker compose logs nombre-del-servicio`.
+   Si dice que el puerto 3306 está ocupado, es porque tienes MySQL instalado y encendido en Windows:
+   detén el servicio MySQL (Servicios de Windows) y vuelve a ejecutar el comando.
 6. Abre en el navegador:
+   - **Frontend Angular: http://localhost:4200** (entra con `admin` / `Admin12345` o crea un cliente en "Crea tu cuenta")
    - Eureka (deben aparecer los 8 servicios + gateway): http://localhost:8761
    - Salud del gateway: http://localhost:8090/actuator/health
    - RabbitMQ (usuario y clave del `.env`): http://localhost:15672
@@ -74,6 +77,14 @@ Pasos:
 
    Consejo: en la ventana **Services** de IntelliJ (`Alt+8`) puedes ver y arrancar todos juntos.
 5. Verifica en http://localhost:8761 que aparezcan todos registrados.
+6. Frontend Angular (requiere **Node.js 22** o 24 desde https://nodejs.org). En una terminal nueva de IntelliJ:
+   ```powershell
+   cd frontend
+   npm install
+   npm start
+   ```
+   Abre http://localhost:4200. En este modo el navegador llama directo al gateway `http://localhost:8090`
+   (el CORS del gateway ya permite `http://localhost:4200`).
 
 ---
 
@@ -104,7 +115,7 @@ En MySQL puedes mostrar que la contraseña está cifrada con BCrypt:
 ```sql
 SELECT nomusuario, password FROM sigip_auth.usuario;
 ```
-(La clave aparece como `$2a$10$...`.) Si la tabla tiene otro nombre, revisa con `SHOW TABLES FROM sigip_auth;`.
+(La clave aparece como `$2a$10$...`, nunca en texto plano.)
 
 ---
 

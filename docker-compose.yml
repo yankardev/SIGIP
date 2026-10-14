@@ -1,5 +1,5 @@
 # Levanta SIGIP completo en local:   cp .env.example .env  &&  docker compose up -d --build
-# Gateway: http://localhost:8090   Eureka: http://localhost:8761   RabbitMQ: http://localhost:15672
+# Frontend: http://localhost:4200   Gateway: http://localhost:8090   Eureka: http://localhost:8761   RabbitMQ: http://localhost:15672
 
 x-servicio: &servicio
   build:
@@ -143,6 +143,17 @@ services:
       args: { SERVICE: report-service }
     environment:
       <<: *entorno
+
+  # Frontend Angular servido por nginx; /api se reenvía al gateway dentro de la red de Docker.
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    ports: ["4200:80"]
+    environment:
+      API_GATEWAY_URL: http://api-gateway:8090
+    depends_on:
+      - api-gateway
 
 volumes:
   mysql-data:
