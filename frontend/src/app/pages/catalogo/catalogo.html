@@ -1,13 +1,40 @@
-<div class="cabecera-pagina">
-  <div>
-    <h1>Catálogo de servicios</h1>
-    <p class="texto-suave">Elige un servicio de impresión y registra tu pedido.</p>
+<section class="catalogo-hero" aria-labelledby="titulo-catalogo">
+  <div class="catalogo-hero-copy">
+    <span class="catalogo-eyebrow"><span class="catalogo-punto"></span> IMPRESIÓN PARA TU NEGOCIO Y TUS IDEAS</span>
+    <h1 id="titulo-catalogo">Tus ideas merecen <span>verse impresas.</span></h1>
+    <p>Encuentra el producto ideal, revisa las opciones y solicita tu impresión con las especificaciones que necesitas.</p>
+    <div class="catalogo-hero-acciones">
+      <a class="btn btn-primario" href="#catalogo-servicios">Explorar servicios <span aria-hidden="true">↓</span></a>
+      <span class="catalogo-hero-nota">Muestras visuales referenciales</span>
+    </div>
   </div>
-  <input class="buscador" type="search" placeholder="Buscar servicio…" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+  <div class="catalogo-hero-visual" aria-label="Ejemplos ilustrativos de productos impresos">
+    <img class="catalogo-hero-imagen catalogo-hero-imagen-principal" src="/images/servicios/folletos.svg" alt="Ejemplo ilustrativo de folletos impresos" />
+    <img class="catalogo-hero-imagen catalogo-hero-imagen-secundaria" src="/images/servicios/tarjetas-presentacion.svg" alt="Ejemplo ilustrativo de tarjetas de presentación" />
+    <div class="catalogo-hero-sello"><strong>Tu proyecto</strong><span>Empieza aquí</span></div>
+  </div>
+</section>
+
+<section class="catalogo-beneficios" aria-label="Cómo elegir tu servicio">
+  <div class="catalogo-beneficio"><span class="catalogo-beneficio-icono" aria-hidden="true">01</span><div><strong>Elige el producto</strong><small>Explora las muestras y categorías.</small></div></div>
+  <div class="catalogo-beneficio"><span class="catalogo-beneficio-icono" aria-hidden="true">02</span><div><strong>Personaliza tu pedido</strong><small>Indica cantidad, tamaño y acabados.</small></div></div>
+  <div class="catalogo-beneficio"><span class="catalogo-beneficio-icono" aria-hidden="true">03</span><div><strong>Consulta el avance</strong><small>Revisa el estado desde tu cuenta.</small></div></div>
+</section>
+
+<div id="catalogo-servicios" class="cabecera-pagina catalogo-cabecera">
+  <div>
+    <span class="catalogo-kicker">NUESTRO CATÁLOGO</span>
+    <h2>¿Qué te gustaría imprimir?</h2>
+    <p class="texto-suave">Busca por nombre o filtra por categoría para encontrarlo más rápido.</p>
+  </div>
+  <label class="catalogo-buscador">
+    <span aria-hidden="true">⌕</span>
+    <input class="buscador" type="search" aria-label="Buscar servicios de impresión" placeholder="Buscar servicio…" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" />
+  </label>
 </div>
 
 <div class="chips">
-  <button type="button" class="chip" [class.chip-activo]="categoriaSeleccionada() === null" (click)="categoriaSeleccionada.set(null)">Todas</button>
+  <button type="button" class="chip" [class.chip-activo]="categoriaSeleccionada() === null" (click)="categoriaSeleccionada.set(null)">Todos los servicios</button>
   @for (c of categorias(); track c.idcategoria) {
     <button type="button" class="chip" [class.chip-activo]="categoriaSeleccionada() === c.idcategoria" (click)="categoriaSeleccionada.set(c.idcategoria)">
       {{ c.nombre }}
@@ -16,27 +43,37 @@
 </div>
 
 @if (cargando()) {
-  <p class="texto-suave">Cargando catálogo…</p>
+  <div class="catalogo-cargando"><span class="catalogo-spinner" aria-hidden="true"></span><p class="texto-suave">Cargando servicios de impresión…</p></div>
 } @else {
-  <div class="rejilla-tarjetas">
+  <div class="rejilla-tarjetas catalogo-grid">
     @for (s of visibles(); track s.idservicio) {
-      <article class="tarjeta servicio">
-        <span class="texto-suave pequeno">{{ s.categoria }}</span>
-        <h3>{{ s.nombre }}</h3>
-        <p class="texto-suave">{{ s.descripcion }}</p>
-        <div class="servicio-pie">
-          <div>
-            <strong class="precio">{{ s.precioBase | currency: 'PEN' : 'S/' }}</strong>
-            <small class="texto-suave"> por unidad</small>
-            @if (s.requiereCotizacion) {
-              <div><span class="badge badge-aviso">Requiere cotización</span></div>
-            }
+      <article class="tarjeta servicio servicio-visual">
+        <div class="servicio-imagen">
+          <img [src]="imagenServicio(s)" [alt]="'Muestra ilustrativa de ' + s.nombre" loading="lazy" />
+          <span class="servicio-imagen-etiqueta">{{ s.categoria }}</span>
+        </div>
+        <div class="servicio-info">
+          <h3>{{ s.nombre }}</h3>
+          <p class="texto-suave">{{ s.descripcion || 'Personaliza este servicio con las especificaciones de tu proyecto.' }}</p>
+          <div class="servicio-pie">
+            <div class="servicio-precio">
+              <strong class="precio">{{ s.precioBase | currency: 'PEN' : 'S/' }}</strong>
+              <small class="texto-suave">{{ s.requiereCotizacion ? 'Precio referencial' : 'por unidad' }}</small>
+              @if (s.requiereCotizacion) {
+                <div><span class="badge badge-aviso">Requiere cotización</span></div>
+              }
+            </div>
+            <button type="button" class="btn btn-primario" (click)="abrir(s)">Solicitar <span aria-hidden="true">→</span></button>
           </div>
-          <button type="button" class="btn btn-primario" (click)="abrir(s)">Solicitar</button>
         </div>
       </article>
     } @empty {
-      <p class="vacio">No hay servicios que coincidan con la búsqueda.</p>
+      <div class="catalogo-sin-resultados">
+        <span aria-hidden="true">⌕</span>
+        <h3>No encontramos ese servicio</h3>
+        <p class="texto-suave">Prueba con otro término o selecciona otra categoría.</p>
+        <button type="button" class="btn btn-secundario" (click)="busqueda.set(''); categoriaSeleccionada.set(null)">Ver todos los servicios</button>
+      </div>
     }
   </div>
 }
@@ -44,15 +81,22 @@
 @if (elegido(); as s) {
   <app-modal [titulo]="'Solicitar: ' + s.nombre" (cerrar)="elegido.set(null)">
     <form (ngSubmit)="solicitar()">
+      <div class="modal-servicio-resumen">
+        <img [src]="imagenServicio(s)" [alt]="'Muestra ilustrativa de ' + s.nombre" />
+        <div><strong>{{ s.nombre }}</strong><small class="texto-suave">{{ s.categoria }}</small></div>
+      </div>
       <label class="campo">
         <span>Cantidad</span>
         <input type="number" name="cantidad" min="1" max="100000" required [(ngModel)]="cantidad" />
       </label>
       <label class="campo">
         <span>Especificaciones (tamaño, papel, colores, acabado…)</span>
-        <textarea name="especificaciones" rows="3" maxlength="1000" [(ngModel)]="especificaciones"></textarea>
+        <textarea name="especificaciones" rows="3" maxlength="1000" [(ngModel)]="especificaciones" placeholder="Ej.: A5, papel couché, impresión a color…"></textarea>
       </label>
       <p class="total">Total estimado: <strong>{{ total() | currency: 'PEN' : 'S/' }}</strong></p>
+      @if (s.requiereCotizacion) {
+        <p class="texto-suave pequeno">El precio final deberá confirmarse mediante cotización.</p>
+      }
       <div class="acciones">
         <button type="button" class="btn btn-secundario" (click)="elegido.set(null)">Cancelar</button>
         <button class="btn btn-primario" [disabled]="guardando() || !cantidad || cantidad < 1">
