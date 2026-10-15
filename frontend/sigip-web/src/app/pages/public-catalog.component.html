@@ -3,23 +3,50 @@
     <a class="brand" routerLink="/inicio"><span class="brand-mark">S</span><span><strong>SIGIP</strong><small>Servicios de impresión</small></span></a>
     <div class="catalog-nav-actions"><a routerLink="/inicio">Inicio</a><a routerLink="/login">Iniciar sesión</a><a class="catalog-button" routerLink="/registro">Crear cuenta ↗</a></div>
   </header>
+
   <main class="catalog-main">
     <a class="back-link" routerLink="/inicio">← Volver al inicio</a>
-    <div class="catalog-heading"><div><span class="eyebrow">CATÁLOGO PARA CLIENTES</span><h1>Encuentra el servicio<br><em>que tu proyecto necesita.</em></h1></div><p>Explora los servicios disponibles. Algunos trabajos requieren una cotización personalizada antes de confirmar el pedido.</p></div>
-    <div class="catalog-loading" *ngIf="loading">Cargando servicios disponibles…</div>
+    <section class="catalog-intro">
+      <div class="catalog-heading">
+        <div><span class="eyebrow">CATÁLOGO PARA CLIENTES</span><h1>Encuentra el servicio<br><em>que tu proyecto necesita.</em></h1></div>
+        <p>Explora ejemplos visuales de nuestros productos. El precio final y los acabados pueden variar según las características de tu pedido.</p>
+      </div>
+      <div class="catalog-search-row">
+        <label class="catalog-search"><span aria-hidden="true">⌕</span><input type="search" aria-label="Buscar productos" placeholder="Buscar tarjetas, folletos, banners…" [(ngModel)]="searchTerm"></label>
+        <span class="catalog-results">{{ filteredServices.length }} servicio(s)</span>
+      </div>
+      <div class="catalog-filters" aria-label="Filtrar por categoría">
+        <button type="button" [class.active]="categoryFilter === 'Todos'" (click)="categoryFilter = 'Todos'">Todos</button>
+        <button type="button" *ngFor="let category of categories" [class.active]="categoryFilter === category" (click)="categoryFilter = category">{{ category }}</button>
+      </div>
+    </section>
+
+    <div class="catalog-loading" *ngIf="loading"><span class="catalog-spinner"></span><span>Cargando servicios disponibles…</span></div>
     <div class="catalog-error" *ngIf="error">{{error}} <button type="button" (click)="loadServices()">Reintentar</button></div>
-    <div class="service-grid" *ngIf="!loading&&!error">
-      <article class="service-card" *ngFor="let s of services">
-        <div class="service-card-top"><span class="service-symbol">✳</span><span class="quote-pill" *ngIf="s.requiereCotizacion">Cotización personalizada</span><span class="price-pill" *ngIf="!s.requiereCotizacion">Precio base</span></div>
-        <span class="service-category">{{s.categoria||'SERVICIO DE IMPRESIÓN'}}</span>
-        <h2>{{s.nombre}}</h2><p>{{s.descripcion||'Servicio disponible para solicitudes de impresión.'}}</p>
-        <div class="service-price" *ngIf="!s.requiereCotizacion">Desde <strong>S/ {{s.precioBase|number:'1.2-2'}}</strong></div>
-        <div class="service-price quote-price" *ngIf="s.requiereCotizacion"><strong>A cotizar</strong><small>Según las características del trabajo</small></div>
-        <button class="service-action" type="button" (click)="requestService(s)">Solicitar este servicio <span>→</span></button>
+    <div class="service-grid visual-service-grid" *ngIf="!loading&&!error">
+      <article class="service-card visual-service-card" *ngFor="let s of filteredServices">
+        <div class="service-image-wrap">
+          <img class="service-image" [src]="imageFor(s)" [alt]="'Muestra ilustrativa de ' + s.nombre" loading="lazy">
+          <span class="service-category-tag">{{s.categoria || 'IMPRESIÓN'}}</span>
+          <span class="quote-pill image-quote" *ngIf="s.requiereCotizacion">Cotización</span>
+        </div>
+        <div class="visual-service-body">
+          <div class="service-card-top">
+            <span class="service-category">{{(s.categoria||'SERVICIO DE IMPRESIÓN').toUpperCase()}}</span>
+            <span class="price-pill" *ngIf="!s.requiereCotizacion">Precio base</span>
+          </div>
+          <h2>{{s.nombre}}</h2>
+          <p>{{s.descripcion||'Servicio disponible para solicitudes de impresión.'}}</p>
+          <div class="service-price" *ngIf="!s.requiereCotizacion">Desde <strong>S/ {{s.precioBase|number:'1.2-2'}}</strong></div>
+          <div class="service-price quote-price" *ngIf="s.requiereCotizacion"><strong>A cotizar</strong><small>Según cantidad, tamaño y acabados</small></div>
+          <button class="service-action" type="button" (click)="requestService(s)">Solicitar este servicio <span>→</span></button>
+        </div>
       </article>
-      <div class="empty-catalog" *ngIf="services.length===0"><strong>Estamos preparando el catálogo.</strong><p>Por el momento no hay servicios activos publicados.</p></div>
+      <div class="empty-catalog visual-empty" *ngIf="filteredServices.length===0"><span class="empty-icon">⌕</span><strong>No encontramos ese servicio.</strong><p>Prueba con otro término o selecciona otra categoría.</p><button class="catalog-button" type="button" (click)="searchTerm='';categoryFilter='Todos'">Ver todo el catálogo</button></div>
     </div>
+    <p class="sample-disclaimer">Las imágenes son muestras ilustrativas. El producto final se define con las especificaciones y el diseño aprobados para cada pedido.</p>
+
     <section class="catalog-help"><div><span class="eyebrow">¿YA TIENES UNA CUENTA?</span><h2>Continúa con tu pedido.</h2><p>Ingresa para registrar solicitudes, revisar cotizaciones y consultar el estado de tus pedidos.</p></div><a class="catalog-button" routerLink="/login">Entrar a mi cuenta →</a></section>
   </main>
-  <footer class="catalog-footer"><span>© SIGIP · Sistema Integral de Gestión de Impresión y Pedidos</span><a routerLink="/login">Acceso al personal</a></footer>
+  <footer class="catalog-footer"><span>© SIGIP · Sistema Integral de Gestión de Impresión y Pedidos</span><a routerLink="/login-interno">Acceso al personal</a></footer>
 </div>
