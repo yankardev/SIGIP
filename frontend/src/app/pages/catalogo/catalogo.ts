@@ -37,6 +37,22 @@ export class Catalogo implements OnInit {
     );
   });
 
+  // Muestras locales para que el catálogo no dependa de servicios de imágenes externos.
+  protected imagenServicio(servicio: Servicio): string {
+    const texto = `${servicio.nombre} ${servicio.categoria} ${servicio.descripcion ?? ''}`
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+
+    if (/tarjeta|presentacion|business card/.test(texto)) return '/images/servicios/tarjetas-presentacion.svg';
+    if (/volante|folleto|brochure|triptico|diptico|flyer/.test(texto)) return '/images/servicios/folletos.svg';
+    if (/banner|gigantografia|gigantografia|lona|pendon|roll.?up|cartel/.test(texto)) return '/images/servicios/banner.svg';
+    if (/sticker|etiqueta|calcomania|adhesivo/.test(texto)) return '/images/servicios/etiquetas-stickers.svg';
+    if (/taza|polo|camiseta|sublimacion|promocional/.test(texto)) return '/images/servicios/promocionales.svg';
+    if (/libro|revista|catalogo|cuaderno|agenda|empastado/.test(texto)) return '/images/servicios/libros-revistas.svg';
+    return '/images/servicios/impresion-general.svg';
+  }
+
   // Modal "Solicitar"
   protected readonly elegido = signal<Servicio | null>(null);
   protected cantidad = 100;
