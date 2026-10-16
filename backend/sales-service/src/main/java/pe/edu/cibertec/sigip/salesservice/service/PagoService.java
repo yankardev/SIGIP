@@ -37,6 +37,13 @@ public class PagoService {
         if (pedido.getEstado() != EstadoPedido.REGISTRADO) {
             throw new ReglaNegocioException("Solo se registra el pago de un pedido en estado REGISTRADO");
         }
+        String observacionPedido = pedido.getObservacion() == null ? "" : pedido.getObservacion().toLowerCase();
+        boolean cotizacionPendiente = observacionPedido.contains("requiere cotización")
+                || observacionPedido.contains("requiere cotizacion")
+                || observacionPedido.contains("precio referencial");
+        if (cotizacionPendiente) {
+            throw new ReglaNegocioException("El servicio requiere una cotización emitida por Ventas antes de registrar el pago");
+        }
         if (request.monto().compareTo(pedido.getTotal()) < 0) {
             throw new ReglaNegocioException("El monto no cubre el total del pedido (" + pedido.getTotal() + ")");
         }
