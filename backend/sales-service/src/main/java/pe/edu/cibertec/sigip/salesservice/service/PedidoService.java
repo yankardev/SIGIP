@@ -120,11 +120,13 @@ public class PedidoService {
     public PedidoResponse emitirCotizacion(Integer id, CotizacionRequest request) {
         Pedido pedido = buscar(id);
         exigirEstado(pedido, EstadoPedido.REGISTRADO, "Solo se puede cotizar un pedido en estado REGISTRADO");
+        ServicioCatalogoResponse servicio = servicioActivo(pedido.getIdservicio());
+        if (!Boolean.TRUE.equals(servicio.requiereCotizacion())) {
+            throw new ReglaNegocioException("Este servicio tiene precio definido en el catálogo y no requiere cotización");
+        }
         String notaActual = pedido.getObservacion() == null ? "" : pedido.getObservacion().toLowerCase();
-        boolean cotizable = notaActual.contains("requiere cotización") || notaActual.contains("requiere cotizacion")
-                || notaActual.contains("cotización emitida") || notaActual.contains("cotizacion emitida");
-        if (!cotizable) {
-            throw new ReglaNegocioException("El pedido no está marcado como una solicitud que requiere cotización");
+        if (notaActual.contains("cotización emitida") || notaActual.contains("cotizacion emitida")) {
+            throw new ReglaNegocioException("La cotización de este pedido ya fue emitida");
         }
         pedido.setPrecioUnitario(request.precioUnitario());
         pedido.setTotal(calcularTotal(request.precioUnitario(), pedido.getCantidad()));
