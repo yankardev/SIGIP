@@ -16,6 +16,7 @@ export class WorkspaceComponent implements OnInit {
  categoryForm={nombre:'',descripcion:''};editingCategoryId:number|null=null;
  serviceForm={nombre:'',descripcion:'',precioBase:0,requiereCotizacion:false,idcategoria:0,activo:true};editingServiceId:number|null=null;
  orderForm:{idservicio:number|null;cantidad:number;especificaciones:string}={idservicio:null,cantidad:1,especificaciones:''};
+ specificationForm={tamano:'',material:'',impresion:'',acabado:'',detalles:''};
  paymentOrderId:number|null=null;paymentForm={monto:0,metodo:'YAPE',numeroOperacion:''};
  quoteOrderId:number|null=null;quoteForm={precioUnitario:0,observacion:''};
  userForm:{nomusuario:string;email:string;password:string;nombres:string;apellidos:string;activo:boolean;rol:'CLIENTE'|'ADMIN'|'VENTAS'|'CAJA'|'DISENO'|'PRODUCCION'|'ALMACEN'}={nomusuario:'',email:'',password:'',nombres:'',apellidos:'',activo:true,rol:'CLIENTE'};editingUserId:number|null=null;
@@ -50,11 +51,21 @@ export class WorkspaceComponent implements OnInit {
  get userName():string{const u=this.auth.user;return [u?.nombres,u?.apellidos].filter(Boolean).join(' ')||u?.nomusuario||'Usuario';}
  get userInitials():string{return this.userName.split(' ').filter(Boolean).slice(0,2).map(s=>s[0].toUpperCase()).join('')||'S';}
  get filteredOrders():Pedido[]{const t=this.search.trim().toLowerCase();return t?this.orders.filter(o=>`${o.idpedido} ${o.nombreServicio} ${o.estado} ${o.cliente||''}`.toLowerCase().includes(t)):this.orders;}
+ displayOrderNumber(o:Pedido):number{if(!this.auth.isClient)return o.idpedido;const newestFirst=[...this.orders].sort((a,b)=>new Date(b.fechaPedido||0).getTime()-new Date(a.fechaPedido||0).getTime()||b.idpedido-a.idpedido);return newestFirst.findIndex(item=>item.idpedido===o.idpedido)+1;}
+ get selectedService():ServicioImpresion|undefined{return this.services.find(s=>Number(s.idservicio)===Number(this.orderForm.idservicio));}
+ clearSelectedService():void{this.orderForm.idservicio=null;}
+ buildSpecifications():string{return [
+  this.specificationForm.tamano?`Tamaño/formato: ${this.specificationForm.tamano}`:'',
+  this.specificationForm.material?`Papel/material: ${this.specificationForm.material}`:'',
+  this.specificationForm.impresion?`Impresión/color: ${this.specificationForm.impresion}`:'',
+  this.specificationForm.acabado?`Acabado: ${this.specificationForm.acabado}`:'',
+  this.specificationForm.detalles.trim()?`Detalles adicionales: ${this.specificationForm.detalles.trim()}`:''
+ ].filter(Boolean).join(' | ');}
  get lowStockCount():number{return this.supplies.filter(s=>s.bajoStock).length;}
  get quoteOrders():Pedido[]{return this.orders.filter(o=>this.isQuoteOrder(o));}
  get deliveryOrders():Pedido[]{return this.orders.filter(o=>['TERMINADO','ENTREGADO'].includes(o.estado));}
- isQuoteOrder(o:Pedido):boolean{const note=(o.observacion||'').toLocaleLowerCase('es-PE');return note.includes('cotización')||note.includes('cotizacion');}
- isQuotePending(o:Pedido):boolean{const note=(o.observacion||'').toLocaleLowerCase('es-PE');return note.includes('requiere cotización')||note.includes('requiere cotizacion')||note.includes('precio referencial');}
+ isQuoteOrder(o:Pedido):boolean{const note=(o.observacion||'').toLocaleLowerCase('es-PE');const service=this.services.find(s=>Number(s.idservicio)===Number(o.idservicio));return Boolean(service?.requiereCotizacion)||note.includes('cotización')||note.includes('cotizacion');}
+ isQuotePending(o:Pedido):boolean{const note=(o.observacion||'').toLocaleLowerCase('es-PE');const service=this.services.find(s=>Number(s.idservicio)===Number(o.idservicio));return Boolean(service?.requiereCotizacion)&&!note.includes('cotización emitida')&&!note.includes('cotizacion emitida')||note.includes('requiere cotización')||note.includes('requiere cotizacion')||note.includes('precio referencial');}
  ngOnInit():void{this.route.data.subscribe(data=>{this.page=String(data['page']||'dashboard');void this.loadPage();});this.route.queryParamMap.subscribe(params=>{const id=Number(params.get('servicio'));if(id>0)this.orderForm.idservicio=id;});}
  private async safe<T>(request:Observable<T>,fallback:T):Promise<T>{try{return await firstValueFrom(request);}catch{this.failures++;return fallback;}}
  async loadPage():Promise<void>{
@@ -68,7 +79,7 @@ export class WorkspaceComponent implements OnInit {
      if(this.isAdmin||this.auth.hasRole('ALMACEN'))this.supplies=await this.safe(this.api.supplies(),[]);
      break;
     case'catalogo':[this.services,this.categories]=await Promise.all([this.safe(this.api.services(true),[]),this.safe(this.api.categories(),[])]);break;
-    case'cotizaciones':this.orders=await this.safe(this.api.orders(),[]);break;
+    case'cotizaciones':[this.orders,this.services]=await Promise.all([this.safe(this.api.orders(),[]),this.safe(this.api.services(false),[])]);break;
     case'pedidos':[this.orders,this.services]=await Promise.all([this.safe(this.api.orders(),[]),this.safe(this.api.services(true),[])]);break;
     case'pagos':{this.orders=await this.safe(this.api.orders(),[]);const histories=await Promise.all(this.orders.map(async o=>(await this.safe(this.api.paymentsByOrder(o.idpedido),[])).map(p=>({...p,nombreServicio:o.nombreServicio,cliente:o.cliente,totalPedido:o.total}))));this.payments=histories.flat().sort((a,b)=>new Date(b.fechaRegistro||0).getTime()-new Date(a.fechaRegistro||0).getTime());break;}
     case'entregas':this.orders=await this.safe(this.api.orders(),[]);break;
@@ -90,7 +101,7 @@ export class WorkspaceComponent implements OnInit {
  }
  async checkBackend():Promise<void>{this.backendStatus='Comprobando...';try{await firstValueFrom(this.api.health());this.backendStatus='Gateway conectado';this.success='El API Gateway respondió correctamente.';this.error='';}catch{this.backendStatus='Sin conexión';this.error='No se pudo consultar /actuator/health. Verifica api-gateway en el puerto 8090.';}}
  logout():void{this.auth.logout();void this.router.navigate(['/login']);}
- selectService(s:ServicioImpresion):void{this.orderForm.idservicio=s.idservicio;this.orderForm.cantidad=1;this.success=s.requiereCotizacion?'Este servicio requiere revisión comercial; registra la solicitud y espera la cotización antes de pagar.':'';void this.router.navigate(['/pedidos']);}
+ selectService(s:ServicioImpresion):void{this.orderForm.idservicio=Number(s.idservicio);this.orderForm.cantidad=1;this.success=s.requiereCotizacion?'Este servicio requiere revisión comercial; registra la solicitud y espera la cotización antes de pagar.':'';void this.router.navigate(['/pedidos'],{queryParams:{servicio:s.idservicio}});}
  async saveCategory():Promise<void>{this.error='';this.success='';try{if(this.editingCategoryId){await firstValueFrom(this.api.updateCategory(this.editingCategoryId,this.categoryForm));this.success='Categoría actualizada.';}else{await firstValueFrom(this.api.createCategory(this.categoryForm));this.success='Categoría creada.';}this.cancelCategoryEdit();await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo guardar la categoría. Verifica el rol ADMIN.');}}
  editCategory(c:Categoria):void{this.editingCategoryId=c.idcategoria;this.categoryForm={nombre:c.nombre,descripcion:c.descripcion||''};window.scrollTo({top:0,behavior:'smooth'});}
  cancelCategoryEdit():void{this.editingCategoryId=null;this.categoryForm={nombre:'',descripcion:''};}
@@ -99,7 +110,7 @@ export class WorkspaceComponent implements OnInit {
  cancelServiceEdit():void{this.editingServiceId=null;this.serviceForm={nombre:'',descripcion:'',precioBase:0,requiereCotizacion:false,idcategoria:0,activo:true};}
  async saveService():Promise<void>{this.error='';this.success='';const body={...this.serviceForm,precioBase:Number(this.serviceForm.precioBase),idcategoria:Number(this.serviceForm.idcategoria)};try{if(this.editingServiceId){await firstValueFrom(this.api.updateService(this.editingServiceId,body));this.success='Servicio actualizado.';}else{await firstValueFrom(this.api.createService(body));this.success='Servicio creado.';}this.cancelServiceEdit();await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo guardar el servicio. Revisa categoría y datos.');}}
  async deleteService(s:ServicioImpresion):Promise<void>{if(!confirm(`¿Eliminar el servicio "${s.nombre}"?`))return;try{await firstValueFrom(this.api.deleteService(s.idservicio));this.success='Servicio eliminado.';await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo eliminar el servicio.');}}
- async createOrder():Promise<void>{this.error='';this.success='';if(!this.orderForm.idservicio){this.error='Selecciona un servicio del catálogo.';return;}try{const o=await firstValueFrom(this.api.createOrder({idservicio:Number(this.orderForm.idservicio),cantidad:Number(this.orderForm.cantidad),especificaciones:this.orderForm.especificaciones}));this.success=`Pedido #${o.idpedido} registrado correctamente.`;this.orderForm={idservicio:null,cantidad:1,especificaciones:''};await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo registrar el pedido.');}}
+ async createOrder():Promise<void>{this.error='';this.success='';if(!this.orderForm.idservicio){this.error='Selecciona un servicio del catálogo.';return;}if(!Number.isInteger(Number(this.orderForm.cantidad))||Number(this.orderForm.cantidad)<1){this.error='La cantidad debe ser un número entero mayor que cero.';return;}const especificaciones=this.buildSpecifications();if(!especificaciones){this.error='Selecciona las opciones de tamaño, material, impresión y acabado.';return;}try{const o=await firstValueFrom(this.api.createOrder({idservicio:Number(this.orderForm.idservicio),cantidad:Number(this.orderForm.cantidad),especificaciones}));this.success=`Pedido #${o.idpedido} registrado correctamente.`;this.orderForm={idservicio:null,cantidad:1,especificaciones:''};this.specificationForm={tamano:'',material:'',impresion:'',acabado:'',detalles:''};await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo registrar el pedido.');}}
  startPayment(o:Pedido):void{this.paymentOrderId=o.idpedido;this.paymentForm={monto:Number(o.total||0),metodo:'YAPE',numeroOperacion:''};}
  async submitPayment():Promise<void>{if(!this.paymentOrderId)return;this.error='';try{const id=this.paymentOrderId;await firstValueFrom(this.api.addPayment(id,{monto:Number(this.paymentForm.monto),metodo:this.paymentForm.metodo,numeroOperacion:this.paymentForm.numeroOperacion.trim()}));this.success=`Pago del pedido #${id} registrado para revisión manual. No se procesa dinero desde SIGIP.`;this.paymentOrderId=null;await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo registrar el pago.');}}
  startQuote(o:Pedido):void{this.quoteOrderId=o.idpedido;this.quoteForm={precioUnitario:Number(o.precioUnitario||0),observacion:''};}
