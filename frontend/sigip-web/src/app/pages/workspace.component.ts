@@ -51,7 +51,7 @@ export class WorkspaceComponent implements OnInit {
  get userInitials():string{return this.userName.split(' ').filter(Boolean).slice(0,2).map(s=>s[0].toUpperCase()).join('')||'S';}
  get filteredOrders():Pedido[]{const t=this.search.trim().toLowerCase();return t?this.orders.filter(o=>`${o.idpedido} ${o.nombreServicio} ${o.estado} ${o.cliente||''}`.toLowerCase().includes(t)):this.orders;}
  displayOrderNumber(o:Pedido):number{if(!this.auth.isClient)return o.idpedido;const chronological=[...this.orders].sort((a,b)=>new Date(a.fechaPedido||0).getTime()-new Date(b.fechaPedido||0).getTime()||a.idpedido-b.idpedido);return chronological.findIndex(item=>item.idpedido===o.idpedido)+1;}
- get selectedService():ServicioImpresion|undefined{return this.services.find(s=>s.idservicio===this.orderForm.idservicio);}
+ get selectedService():ServicioImpresion|undefined{return this.services.find(s=>Number(s.idservicio)===Number(this.orderForm.idservicio));}
  clearSelectedService():void{this.orderForm.idservicio=null;}
  get lowStockCount():number{return this.supplies.filter(s=>s.bajoStock).length;}
  get quoteOrders():Pedido[]{return this.orders.filter(o=>this.isQuoteOrder(o));}
@@ -93,7 +93,7 @@ export class WorkspaceComponent implements OnInit {
  }
  async checkBackend():Promise<void>{this.backendStatus='Comprobando...';try{await firstValueFrom(this.api.health());this.backendStatus='Gateway conectado';this.success='El API Gateway respondió correctamente.';this.error='';}catch{this.backendStatus='Sin conexión';this.error='No se pudo consultar /actuator/health. Verifica api-gateway en el puerto 8090.';}}
  logout():void{this.auth.logout();void this.router.navigate(['/login']);}
- selectService(s:ServicioImpresion):void{this.orderForm.idservicio=s.idservicio;this.orderForm.cantidad=1;this.success=s.requiereCotizacion?'Este servicio requiere revisión comercial; registra la solicitud y espera la cotización antes de pagar.':'';void this.router.navigate(['/pedidos']);}
+ selectService(s:ServicioImpresion):void{this.orderForm.idservicio=Number(s.idservicio);this.orderForm.cantidad=1;this.success=s.requiereCotizacion?'Este servicio requiere revisión comercial; registra la solicitud y espera la cotización antes de pagar.':'';void this.router.navigate(['/pedidos'],{queryParams:{servicio:s.idservicio}});}
  async saveCategory():Promise<void>{this.error='';this.success='';try{if(this.editingCategoryId){await firstValueFrom(this.api.updateCategory(this.editingCategoryId,this.categoryForm));this.success='Categoría actualizada.';}else{await firstValueFrom(this.api.createCategory(this.categoryForm));this.success='Categoría creada.';}this.cancelCategoryEdit();await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo guardar la categoría. Verifica el rol ADMIN.');}}
  editCategory(c:Categoria):void{this.editingCategoryId=c.idcategoria;this.categoryForm={nombre:c.nombre,descripcion:c.descripcion||''};window.scrollTo({top:0,behavior:'smooth'});}
  cancelCategoryEdit():void{this.editingCategoryId=null;this.categoryForm={nombre:'',descripcion:''};}
