@@ -64,8 +64,8 @@ export class WorkspaceComponent implements OnInit {
  get lowStockCount():number{return this.supplies.filter(s=>s.bajoStock).length;}
  get quoteOrders():Pedido[]{return this.orders.filter(o=>this.isQuoteOrder(o));}
  get deliveryOrders():Pedido[]{return this.orders.filter(o=>['TERMINADO','ENTREGADO'].includes(o.estado));}
- isQuoteOrder(o:Pedido):boolean{const note=(o.observacion||'').toLocaleLowerCase('es-PE');return note.includes('cotización')||note.includes('cotizacion');}
- isQuotePending(o:Pedido):boolean{const note=(o.observacion||'').toLocaleLowerCase('es-PE');return note.includes('requiere cotización')||note.includes('requiere cotizacion')||note.includes('precio referencial');}
+ isQuoteOrder(o:Pedido):boolean{const note=(o.observacion||'').toLocaleLowerCase('es-PE');const service=this.services.find(s=>Number(s.idservicio)===Number(o.idservicio));return Boolean(service?.requiereCotizacion)||note.includes('cotización')||note.includes('cotizacion');}
+ isQuotePending(o:Pedido):boolean{const note=(o.observacion||'').toLocaleLowerCase('es-PE');const service=this.services.find(s=>Number(s.idservicio)===Number(o.idservicio));return Boolean(service?.requiereCotizacion)&&!note.includes('cotización emitida')&&!note.includes('cotizacion emitida')||note.includes('requiere cotización')||note.includes('requiere cotizacion')||note.includes('precio referencial');}
  ngOnInit():void{this.route.data.subscribe(data=>{this.page=String(data['page']||'dashboard');void this.loadPage();});this.route.queryParamMap.subscribe(params=>{const id=Number(params.get('servicio'));if(id>0)this.orderForm.idservicio=id;});}
  private async safe<T>(request:Observable<T>,fallback:T):Promise<T>{try{return await firstValueFrom(request);}catch{this.failures++;return fallback;}}
  async loadPage():Promise<void>{
@@ -79,7 +79,7 @@ export class WorkspaceComponent implements OnInit {
      if(this.isAdmin||this.auth.hasRole('ALMACEN'))this.supplies=await this.safe(this.api.supplies(),[]);
      break;
     case'catalogo':[this.services,this.categories]=await Promise.all([this.safe(this.api.services(true),[]),this.safe(this.api.categories(),[])]);break;
-    case'cotizaciones':this.orders=await this.safe(this.api.orders(),[]);break;
+    case'cotizaciones':[this.orders,this.services]=await Promise.all([this.safe(this.api.orders(),[]),this.safe(this.api.services(false),[])]);break;
     case'pedidos':[this.orders,this.services]=await Promise.all([this.safe(this.api.orders(),[]),this.safe(this.api.services(true),[])]);break;
     case'pagos':{this.orders=await this.safe(this.api.orders(),[]);const histories=await Promise.all(this.orders.map(async o=>(await this.safe(this.api.paymentsByOrder(o.idpedido),[])).map(p=>({...p,nombreServicio:o.nombreServicio,cliente:o.cliente,totalPedido:o.total}))));this.payments=histories.flat().sort((a,b)=>new Date(b.fechaRegistro||0).getTime()-new Date(a.fechaRegistro||0).getTime());break;}
     case'entregas':this.orders=await this.safe(this.api.orders(),[]);break;
