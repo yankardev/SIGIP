@@ -8,7 +8,6 @@ data:
   DB_USER: "root"
   RABBITMQ_HOST: "rabbitmq"
   RABBITMQ_PORT: "5672"
-  RABBITMQ_USER: "sigip"
   EVENTOS_HABILITADOS: "true"
 ---
 apiVersion: apps/v1
@@ -43,6 +42,11 @@ spec:
                 secretKeyRef:
                   name: sigip-secrets
                   key: MYSQL_ROOT_PASSWORD
+            - name: RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sigip-secrets
+                  key: RABBITMQ_USER
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
