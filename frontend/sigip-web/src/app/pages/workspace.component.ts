@@ -16,6 +16,7 @@ export class WorkspaceComponent implements OnInit {
  categoryForm={nombre:'',descripcion:''};editingCategoryId:number|null=null;
  serviceForm={nombre:'',descripcion:'',precioBase:0,requiereCotizacion:false,idcategoria:0,activo:true};editingServiceId:number|null=null;
  orderForm:{idservicio:number|null;cantidad:number;especificaciones:string}={idservicio:null,cantidad:1,especificaciones:''};
+ specificationForm={tamano:'',material:'',impresion:'',acabado:'',detalles:''};
  paymentOrderId:number|null=null;paymentForm={monto:0,metodo:'YAPE',numeroOperacion:''};
  quoteOrderId:number|null=null;quoteForm={precioUnitario:0,observacion:''};
  userForm:{nomusuario:string;email:string;password:string;nombres:string;apellidos:string;activo:boolean;rol:'CLIENTE'|'ADMIN'|'VENTAS'|'CAJA'|'DISENO'|'PRODUCCION'|'ALMACEN'}={nomusuario:'',email:'',password:'',nombres:'',apellidos:'',activo:true,rol:'CLIENTE'};editingUserId:number|null=null;
@@ -53,6 +54,13 @@ export class WorkspaceComponent implements OnInit {
  displayOrderNumber(o:Pedido):number{if(!this.auth.isClient)return o.idpedido;const newestFirst=[...this.orders].sort((a,b)=>new Date(b.fechaPedido||0).getTime()-new Date(a.fechaPedido||0).getTime()||b.idpedido-a.idpedido);return newestFirst.findIndex(item=>item.idpedido===o.idpedido)+1;}
  get selectedService():ServicioImpresion|undefined{return this.services.find(s=>Number(s.idservicio)===Number(this.orderForm.idservicio));}
  clearSelectedService():void{this.orderForm.idservicio=null;}
+ buildSpecifications():string{return [
+  this.specificationForm.tamano?`Tamaño/formato: ${this.specificationForm.tamano}`:'',
+  this.specificationForm.material?`Papel/material: ${this.specificationForm.material}`:'',
+  this.specificationForm.impresion?`Impresión/color: ${this.specificationForm.impresion}`:'',
+  this.specificationForm.acabado?`Acabado: ${this.specificationForm.acabado}`:'',
+  this.specificationForm.detalles.trim()?`Detalles adicionales: ${this.specificationForm.detalles.trim()}`:''
+ ].filter(Boolean).join(' | ');}
  get lowStockCount():number{return this.supplies.filter(s=>s.bajoStock).length;}
  get quoteOrders():Pedido[]{return this.orders.filter(o=>this.isQuoteOrder(o));}
  get deliveryOrders():Pedido[]{return this.orders.filter(o=>['TERMINADO','ENTREGADO'].includes(o.estado));}
@@ -102,7 +110,7 @@ export class WorkspaceComponent implements OnInit {
  cancelServiceEdit():void{this.editingServiceId=null;this.serviceForm={nombre:'',descripcion:'',precioBase:0,requiereCotizacion:false,idcategoria:0,activo:true};}
  async saveService():Promise<void>{this.error='';this.success='';const body={...this.serviceForm,precioBase:Number(this.serviceForm.precioBase),idcategoria:Number(this.serviceForm.idcategoria)};try{if(this.editingServiceId){await firstValueFrom(this.api.updateService(this.editingServiceId,body));this.success='Servicio actualizado.';}else{await firstValueFrom(this.api.createService(body));this.success='Servicio creado.';}this.cancelServiceEdit();await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo guardar el servicio. Revisa categoría y datos.');}}
  async deleteService(s:ServicioImpresion):Promise<void>{if(!confirm(`¿Eliminar el servicio "${s.nombre}"?`))return;try{await firstValueFrom(this.api.deleteService(s.idservicio));this.success='Servicio eliminado.';await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo eliminar el servicio.');}}
- async createOrder():Promise<void>{this.error='';this.success='';if(!this.orderForm.idservicio){this.error='Selecciona un servicio del catálogo.';return;}try{const o=await firstValueFrom(this.api.createOrder({idservicio:Number(this.orderForm.idservicio),cantidad:Number(this.orderForm.cantidad),especificaciones:this.orderForm.especificaciones}));this.success=`Pedido #${o.idpedido} registrado correctamente.`;this.orderForm={idservicio:null,cantidad:1,especificaciones:''};await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo registrar el pedido.');}}
+ async createOrder():Promise<void>{this.error='';this.success='';if(!this.orderForm.idservicio){this.error='Selecciona un servicio del catálogo.';return;}if(!Number.isInteger(Number(this.orderForm.cantidad))||Number(this.orderForm.cantidad)<1){this.error='La cantidad debe ser un número entero mayor que cero.';return;}const especificaciones=this.buildSpecifications();if(!especificaciones){this.error='Selecciona las opciones de tamaño, material, impresión y acabado.';return;}try{const o=await firstValueFrom(this.api.createOrder({idservicio:Number(this.orderForm.idservicio),cantidad:Number(this.orderForm.cantidad),especificaciones}));this.success=`Pedido #${o.idpedido} registrado correctamente.`;this.orderForm={idservicio:null,cantidad:1,especificaciones:''};this.specificationForm={tamano:'',material:'',impresion:'',acabado:'',detalles:''};await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo registrar el pedido.');}}
  startPayment(o:Pedido):void{this.paymentOrderId=o.idpedido;this.paymentForm={monto:Number(o.total||0),metodo:'YAPE',numeroOperacion:''};}
  async submitPayment():Promise<void>{if(!this.paymentOrderId)return;this.error='';try{const id=this.paymentOrderId;await firstValueFrom(this.api.addPayment(id,{monto:Number(this.paymentForm.monto),metodo:this.paymentForm.metodo,numeroOperacion:this.paymentForm.numeroOperacion.trim()}));this.success=`Pago del pedido #${id} registrado para revisión manual. No se procesa dinero desde SIGIP.`;this.paymentOrderId=null;await this.loadPage();}catch(e:any){this.error=this.message(e,'No se pudo registrar el pago.');}}
  startQuote(o:Pedido):void{this.quoteOrderId=o.idpedido;this.quoteForm={precioUnitario:Number(o.precioUnitario||0),observacion:''};}
