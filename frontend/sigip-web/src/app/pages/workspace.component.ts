@@ -50,7 +50,7 @@ export class WorkspaceComponent implements OnInit {
  get userName():string{const u=this.auth.user;return [u?.nombres,u?.apellidos].filter(Boolean).join(' ')||u?.nomusuario||'Usuario';}
  get userInitials():string{return this.userName.split(' ').filter(Boolean).slice(0,2).map(s=>s[0].toUpperCase()).join('')||'S';}
  get filteredOrders():Pedido[]{const t=this.search.trim().toLowerCase();return t?this.orders.filter(o=>`${o.idpedido} ${o.nombreServicio} ${o.estado} ${o.cliente||''}`.toLowerCase().includes(t)):this.orders;}
- displayOrderNumber(o:Pedido):number{if(!this.auth.isClient)return o.idpedido;const chronological=[...this.orders].sort((a,b)=>new Date(a.fechaPedido||0).getTime()-new Date(b.fechaPedido||0).getTime()||a.idpedido-b.idpedido);return chronological.findIndex(item=>item.idpedido===o.idpedido)+1;}
+ displayOrderNumber(o:Pedido):number{if(!this.auth.isClient)return o.idpedido;const newestFirst=[...this.orders].sort((a,b)=>new Date(b.fechaPedido||0).getTime()-new Date(a.fechaPedido||0).getTime()||b.idpedido-a.idpedido);return newestFirst.findIndex(item=>item.idpedido===o.idpedido)+1;}
  get selectedService():ServicioImpresion|undefined{return this.services.find(s=>Number(s.idservicio)===Number(this.orderForm.idservicio));}
  clearSelectedService():void{this.orderForm.idservicio=null;}
  get lowStockCount():number{return this.supplies.filter(s=>s.bajoStock).length;}
