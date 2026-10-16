@@ -100,6 +100,11 @@ public class PedidoService {
         pedido.setCantidad(request.cantidad());
         pedido.setTotal(calcularTotal(servicio.precioBase(), request.cantidad()));
         pedido.setEspecificaciones(request.especificaciones());
+        // Al cambiar el servicio, recalcular también la condición comercial.
+        // Evita conservar una cotización pendiente al pasar a un servicio de precio fijo,
+        // o perder la marca de cotización cuando se cambia a un servicio cotizable.
+        pedido.setObservacion(Boolean.TRUE.equals(servicio.requiereCotizacion())
+                ? "Precio referencial: el servicio requiere cotización" : null);
         pedido.setFechaActualizacion(LocalDateTime.now());
 
         return PedidoResponse.from(pedidoRepository.save(pedido));
