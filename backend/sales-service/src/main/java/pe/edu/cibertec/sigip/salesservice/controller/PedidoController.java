@@ -31,7 +31,7 @@ public class PedidoController {
     }
 
     @GetMapping("/resumen")
-    @PreAuthorize("hasAnyRole('ADMIN','VENTAS','CAJA','PRODUCCION','ALMACEN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS','CAJA')")
     public ResponseEntity<ResumenVentasResponse> resumen() {
         return ResponseEntity.ok(pedidoService.resumen());
     }
@@ -48,6 +48,7 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS')")
     public ResponseEntity<PedidoResponse> actualizar(@PathVariable Integer id,
                                                      @Valid @RequestBody PedidoRequest request,
                                                      Authentication auth) {
@@ -55,13 +56,14 @@ public class PedidoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id, Authentication auth) {
         pedidoService.eliminar(id, UsuarioActual.de(auth));
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasAnyRole('ADMIN','VENTAS','CAJA','PRODUCCION','ALMACEN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS','PRODUCCION')")
     public ResponseEntity<PedidoResponse> cambiarEstado(@PathVariable Integer id,
                                                         @Valid @RequestBody CambioEstadoRequest request) {
         return ResponseEntity.ok(pedidoService.cambiarEstado(id, request));
@@ -73,7 +75,7 @@ public class PedidoController {
     }
 
     @PostMapping("/{id}/pagos")
-    @PreAuthorize("hasAnyRole('CLIENTE','ADMIN','VENTAS')")
+    @PreAuthorize("hasAnyRole('CLIENTE','ADMIN')")
     public ResponseEntity<PagoResponse> registrarPago(@PathVariable Integer id,
                                                       @Valid @RequestBody PagoRequest request,
                                                       Authentication auth) {
