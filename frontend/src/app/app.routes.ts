@@ -21,13 +21,12 @@ export const routes: Routes = [
       { path: 'notificaciones', loadComponent: () => import('./pages/notificaciones/notificaciones').then((m) => m.Notificaciones) },
       {
         path: '',
-        canActivate: [rolesGuard(['ADMIN'])],
         children: [
-          { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard) },
+          { path: 'dashboard', canActivate: [rolesGuard(['ADMIN'])], loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard) },
           { path: 'admin/catalogo', canActivate: [rolesGuard(['VENTAS'])], loadComponent: () => import('./pages/admin-catalogo/admin-catalogo').then((m) => m.AdminCatalogo) },
           { path: 'produccion', canActivate: [rolesGuard(['PRODUCCION'])], loadComponent: () => import('./pages/produccion/produccion').then((m) => m.Produccion) },
           { path: 'inventario', canActivate: [rolesGuard(['ALMACEN'])], loadComponent: () => import('./pages/inventario/inventario').then((m) => m.Inventario) },
-          { path: 'usuarios', loadComponent: () => import('./pages/usuarios/usuarios').then((m) => m.Usuarios) },
+          { path: 'usuarios', canActivate: [rolesGuard(['ADMIN'])], loadComponent: () => import('./pages/usuarios/usuarios').then((m) => m.Usuarios) },
         ],
       },
       { path: '', pathMatch: 'full', redirectTo: 'inicio' },
