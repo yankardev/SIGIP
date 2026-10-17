@@ -55,7 +55,7 @@
       </label>
       <div class="opciones">
         @for (rol of rolesDisponibles; track rol) {
-          <label><input type="checkbox" [name]="'rol-' + rol" [ngModel]="form.roles.includes(rol)" (ngModelChange)="$event ? (form.roles = [...form.roles, rol]) : (form.roles = form.roles.filter(r => r !== rol) as typeof form.roles)" /> {{ rol }}</label>
+          <label><input type="checkbox" [name]="'rol-' + rol" [ngModel]="form.roles.includes(rol)" (ngModelChange)="alternarRol(rol, $event)" /> {{ rol }}</label>
         }
         <label><input type="checkbox" name="activo" [(ngModel)]="form.activo" /> Activo</label>
       </div>
