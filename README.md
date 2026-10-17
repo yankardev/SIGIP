@@ -123,11 +123,12 @@ rol y manejo de errores). El flujo completo en el navegador está descrito en
 | [08-optimizacion](docs/08-optimizacion.md) | Cuellos de botella, optimización y resultados medidos |
 | [09-despliegue-nube](docs/09-despliegue-nube.md) | Publicación en Render con PostgreSQL |
 | [10-frontend](docs/10-frontend.md) | Frontend Angular: estructura, pantallas por rol y conexión con el gateway |
+| [11-roles-y-permisos](docs/11-roles-y-permisos.md) | Matriz de roles y permisos alineada con el informe |
 
 ## Seguridad
 
 - Contraseñas con BCrypt; nunca en texto plano.
 - JWT firmado (HS256) con `JWT_SECRET` compartido; nunca se sube al repositorio (`.env` está en `.gitignore`).
-- Roles `ADMIN` y `CLIENTE` con `@PreAuthorize`; un cliente solo ve sus propios pedidos, diseños y avisos.
+- Roles del informe: `ADMIN`, `CLIENTE`, `VENTAS`, `CAJA`, `DISENO`, `PRODUCCION` y `ALMACEN`. La asignación se administra desde usuarios y cada módulo debe validar sus permisos en backend; un cliente solo ve sus propios pedidos, diseños y avisos.
 - En el frontend, un interceptor agrega el token a cada petición y cierra la sesión si expira; los guards
   ocultan las pantallas de administrador (la validación real sigue en el backend).
