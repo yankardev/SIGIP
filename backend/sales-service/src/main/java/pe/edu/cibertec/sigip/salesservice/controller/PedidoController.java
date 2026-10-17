@@ -31,7 +31,7 @@ public class PedidoController {
     }
 
     @GetMapping("/resumen")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS','CAJA','PRODUCCION','ALMACEN')")
     public ResponseEntity<ResumenVentasResponse> resumen() {
         return ResponseEntity.ok(pedidoService.resumen());
     }
@@ -42,7 +42,7 @@ public class PedidoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('CLIENTE','ADMIN')")
+    @PreAuthorize("hasAnyRole('CLIENTE','ADMIN','VENTAS')")
     public ResponseEntity<PedidoResponse> registrar(@Valid @RequestBody PedidoRequest request, Authentication auth) {
         return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.registrar(request, UsuarioActual.de(auth)));
     }
@@ -61,7 +61,7 @@ public class PedidoController {
     }
 
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS','CAJA','PRODUCCION','ALMACEN')")
     public ResponseEntity<PedidoResponse> cambiarEstado(@PathVariable Integer id,
                                                         @Valid @RequestBody CambioEstadoRequest request) {
         return ResponseEntity.ok(pedidoService.cambiarEstado(id, request));
@@ -73,7 +73,7 @@ public class PedidoController {
     }
 
     @PostMapping("/{id}/pagos")
-    @PreAuthorize("hasAnyRole('CLIENTE','ADMIN')")
+    @PreAuthorize("hasAnyRole('CLIENTE','ADMIN','VENTAS')")
     public ResponseEntity<PagoResponse> registrarPago(@PathVariable Integer id,
                                                       @Valid @RequestBody PagoRequest request,
                                                       Authentication auth) {
