@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { AuthService } from './core/auth.service';
-import { adminGuard, authGuard, invitadoGuard } from './core/guards';
+import { authGuard, invitadoGuard, rolesGuard } from './core/guards';
 import { Shell } from './layout/shell';
 
 export const routes: Routes = [
@@ -21,12 +21,12 @@ export const routes: Routes = [
       { path: 'notificaciones', loadComponent: () => import('./pages/notificaciones/notificaciones').then((m) => m.Notificaciones) },
       {
         path: '',
-        canActivate: [adminGuard],
+        canActivate: [rolesGuard(['ADMIN'])],
         children: [
           { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard) },
-          { path: 'admin/catalogo', loadComponent: () => import('./pages/admin-catalogo/admin-catalogo').then((m) => m.AdminCatalogo) },
-          { path: 'produccion', loadComponent: () => import('./pages/produccion/produccion').then((m) => m.Produccion) },
-          { path: 'inventario', loadComponent: () => import('./pages/inventario/inventario').then((m) => m.Inventario) },
+          { path: 'admin/catalogo', canActivate: [rolesGuard(['VENTAS'])], loadComponent: () => import('./pages/admin-catalogo/admin-catalogo').then((m) => m.AdminCatalogo) },
+          { path: 'produccion', canActivate: [rolesGuard(['PRODUCCION'])], loadComponent: () => import('./pages/produccion/produccion').then((m) => m.Produccion) },
+          { path: 'inventario', canActivate: [rolesGuard(['ALMACEN'])], loadComponent: () => import('./pages/inventario/inventario').then((m) => m.Inventario) },
           { path: 'usuarios', loadComponent: () => import('./pages/usuarios/usuarios').then((m) => m.Usuarios) },
         ],
       },
