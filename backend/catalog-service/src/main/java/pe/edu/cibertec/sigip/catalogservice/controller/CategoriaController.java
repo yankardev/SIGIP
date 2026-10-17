@@ -30,7 +30,7 @@ public class CategoriaController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS')")
     public ResponseEntity<CategoriaResponse> registrar(
             @Valid @RequestBody CategoriaRequest request
     ) {
@@ -39,7 +39,7 @@ public class CategoriaController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS')")
     public ResponseEntity<CategoriaResponse> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody CategoriaRequest request
@@ -48,7 +48,7 @@ public class CategoriaController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         categoriaService.eliminar(id);
         return ResponseEntity.noContent().build();
