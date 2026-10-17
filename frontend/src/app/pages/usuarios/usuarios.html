@@ -1,7 +1,7 @@
 <div class="cabecera-pagina">
   <div>
     <h1>Usuarios</h1>
-    <p class="texto-suave">Cuentas del sistema y sus roles (ADMIN, CLIENTE).</p>
+    <p class="texto-suave">Cuentas del sistema y sus permisos por área.</p>
   </div>
   <button type="button" class="btn btn-primario" (click)="nuevo()">Nuevo usuario</button>
 </div>
@@ -54,8 +54,9 @@
         <input type="password" name="password" [required]="!editandoId" minlength="8" maxlength="100" [(ngModel)]="form.password" autocomplete="new-password" />
       </label>
       <div class="opciones">
-        <label><input type="checkbox" name="admin" [(ngModel)]="form.admin" /> ADMIN</label>
-        <label><input type="checkbox" name="cliente" [(ngModel)]="form.cliente" /> CLIENTE</label>
+        @for (rol of rolesDisponibles; track rol) {
+          <label><input type="checkbox" [name]="'rol-' + rol" [ngModel]="form.roles.includes(rol)" (ngModelChange)="alternarRol(rol, $event)" /> {{ rol }}</label>
+        }
         <label><input type="checkbox" name="activo" [(ngModel)]="form.activo" /> Activo</label>
       </div>
       <div class="acciones">

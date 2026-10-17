@@ -36,7 +36,7 @@ public class ServicioImpresionController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS')")
     public ResponseEntity<ServicioImpresionResponse> registrar(
             @Valid @RequestBody ServicioImpresionRequest request
     ) {
@@ -45,7 +45,7 @@ public class ServicioImpresionController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS')")
     public ResponseEntity<ServicioImpresionResponse> actualizar(
             @PathVariable Integer id,
             @Valid @RequestBody ServicioImpresionRequest request
@@ -54,7 +54,7 @@ public class ServicioImpresionController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         servicioService.eliminar(id);
         return ResponseEntity.noContent().build();

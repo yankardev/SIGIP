@@ -31,7 +31,7 @@ public class PedidoController {
     }
 
     @GetMapping("/resumen")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS','CAJA')")
     public ResponseEntity<ResumenVentasResponse> resumen() {
         return ResponseEntity.ok(pedidoService.resumen());
     }
@@ -42,12 +42,13 @@ public class PedidoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('CLIENTE','ADMIN')")
+    @PreAuthorize("hasAnyRole('CLIENTE','ADMIN','VENTAS')")
     public ResponseEntity<PedidoResponse> registrar(@Valid @RequestBody PedidoRequest request, Authentication auth) {
         return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.registrar(request, UsuarioActual.de(auth)));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS')")
     public ResponseEntity<PedidoResponse> actualizar(@PathVariable Integer id,
                                                      @Valid @RequestBody PedidoRequest request,
                                                      Authentication auth) {
@@ -55,13 +56,14 @@ public class PedidoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> eliminar(@PathVariable Integer id, Authentication auth) {
         pedidoService.eliminar(id, UsuarioActual.de(auth));
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENTAS','PRODUCCION')")
     public ResponseEntity<PedidoResponse> cambiarEstado(@PathVariable Integer id,
                                                         @Valid @RequestBody CambioEstadoRequest request) {
         return ResponseEntity.ok(pedidoService.cambiarEstado(id, request));

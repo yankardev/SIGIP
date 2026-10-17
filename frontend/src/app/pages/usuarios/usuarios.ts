@@ -23,6 +23,7 @@ export class Usuarios implements OnInit {
   protected readonly modal = signal(false);
   protected editandoId: number | null = null;
   protected form = this.vacio();
+  protected readonly rolesDisponibles: Rol[] = ['ADMIN', 'CLIENTE', 'VENTAS', 'CAJA', 'DISENO', 'PRODUCCION', 'ALMACEN'];
 
   ngOnInit(): void {
     this.cargar();
@@ -45,20 +46,25 @@ export class Usuarios implements OnInit {
     this.editandoId = u.idusuario;
     this.form = {
       nomusuario: u.nomusuario, email: u.email, password: '', nombres: u.nombres, apellidos: u.apellidos,
-      activo: u.activo, admin: u.roles.includes('ADMIN'), cliente: u.roles.includes('CLIENTE'),
+      activo: u.activo, roles: [...u.roles],
     };
     this.modal.set(true);
   }
 
+  alternarRol(rol: Rol, seleccionado: boolean): void {
+    const actuales = this.form.roles;
+    this.form.roles = seleccionado
+      ? [...new Set([...actuales, rol])]
+      : actuales.filter((r) => r !== rol);
+  }
+
   guardar(): void {
-    const roles: Rol[] = [];
-    if (this.form.admin) roles.push('ADMIN');
-    if (this.form.cliente) roles.push('CLIENTE');
+    const roles = [...this.form.roles] as Rol[];
     if (roles.length === 0) {
       this.notificador.error(null, 'Asigna al menos un rol');
       return;
     }
-    const { admin, cliente, ...datos } = this.form;
+    const { roles: _roles, ...datos } = this.form;
     this.ejecutar(
       this.servicio.guardar({ ...datos, roles }, this.editandoId ?? undefined),
       this.editandoId ? 'Usuario actualizado' : 'Usuario creado',
@@ -87,6 +93,6 @@ export class Usuarios implements OnInit {
   }
 
   private vacio() {
-    return { nomusuario: '', email: '', password: '', nombres: '', apellidos: '', activo: true, admin: false, cliente: true };
+    return { nomusuario: '', email: '', password: '', nombres: '', apellidos: '', activo: true, roles: ['CLIENTE'] as Rol[] };
   }
 }

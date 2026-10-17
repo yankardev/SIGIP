@@ -7,18 +7,18 @@ interface Opcion {
   ruta: string;
   texto: string;
   icono: string;
-  soloAdmin?: boolean;
+  roles?: string[];
 }
 
 const MENU: Opcion[] = [
-  { ruta: '/dashboard', texto: 'Dashboard', icono: '▦', soloAdmin: true },
+  { ruta: '/dashboard', texto: 'Dashboard', icono: '▦', roles: ['ADMIN'] },
   { ruta: '/catalogo', texto: 'Catálogo', icono: '◫' },
   { ruta: '/pedidos', texto: 'Pedidos y pagos', icono: '≡' },
   { ruta: '/disenos', texto: 'Diseños', icono: '✎' },
-  { ruta: '/produccion', texto: 'Producción', icono: '⚙', soloAdmin: true },
-  { ruta: '/inventario', texto: 'Inventario', icono: '▤', soloAdmin: true },
-  { ruta: '/admin/catalogo', texto: 'Gestionar catálogo', icono: '✚', soloAdmin: true },
-  { ruta: '/usuarios', texto: 'Usuarios', icono: '☺', soloAdmin: true },
+  { ruta: '/produccion', texto: 'Producción', icono: '⚙', roles: ['ADMIN', 'PRODUCCION'] },
+  { ruta: '/inventario', texto: 'Inventario', icono: '▤', roles: ['ADMIN', 'ALMACEN'] },
+  { ruta: '/admin/catalogo', texto: 'Gestionar catálogo', icono: '✚', roles: ['ADMIN', 'VENTAS'] },
+  { ruta: '/usuarios', texto: 'Usuarios', icono: '☺', roles: ['ADMIN'] },
   { ruta: '/notificaciones', texto: 'Notificaciones', icono: '✉' },
 ];
 
@@ -32,7 +32,7 @@ export class Shell implements OnInit {
   protected readonly auth = inject(AuthService);
   protected readonly notificaciones = inject(NotificacionesService);
   protected readonly menuAbierto = signal(false);
-  protected readonly opciones = computed(() => MENU.filter((o) => !o.soloAdmin || this.auth.esAdmin()));
+  protected readonly opciones = computed(() => MENU.filter((o) => !o.roles || o.roles.some((rol) => this.auth.tieneRol(rol as import('../core/models').Rol))));
 
   ngOnInit(): void {
     this.notificaciones.actualizarContador();
