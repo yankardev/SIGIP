@@ -51,6 +51,13 @@ export class Usuarios implements OnInit {
     this.modal.set(true);
   }
 
+  alternarRol(rol: Rol, seleccionado: boolean): void {
+    const actuales = this.form.roles;
+    this.form.roles = seleccionado
+      ? [...new Set([...actuales, rol])]
+      : actuales.filter((r) => r !== rol);
+  }
+
   guardar(): void {
     const roles = [...this.form.roles] as Rol[];
     if (roles.length === 0) {
