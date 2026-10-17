@@ -1,38 +1,27 @@
 # auth-service
 
-Servicio de autenticación y autorización de SIGIP.
+Autenticación y usuarios: login REST con usuario en BD, BCrypt y JWT.
 
-## Objetivo del primer incremento
+## Funcionalidad
 
-Implementar el patrón trabajado en clase:
+- `POST /api/v1/auth/login` → token JWT (público).
+- `POST /api/v1/auth/registro` → crea un CLIENTE (público).
+- `GET /api/v1/auth/me` → datos del usuario del token.
+- `GET|POST|PUT|DELETE /api/v1/usuarios` → CRUD de usuarios (ADMIN).
+- Al arrancar crea el administrador con `SIGIP_ADMIN_USERNAME` / `SIGIP_ADMIN_PASSWORD`.
 
-- usuarios y roles persistidos;
-- `BCryptPasswordEncoder`;
-- login REST;
-- JWT;
-- `SecurityFilterChain`;
-- filtro JWT;
-- autorización por roles con `@PreAuthorize`;
-- validaciones y respuestas controladas.
+## Pruebas
 
-## Configuración local
+- `UsuarioRepositoryTest` (insertar, actualizar, eliminar, listar)
+- `AuthControllerIntegrationTest` (login correcto, clave incorrecta, usuario inactivo, token, roles)
+- `UsuarioServiceTest`
 
-Antes de ejecutar, crear la base de datos:
+## Ejecución
 
-```sql
-CREATE DATABASE sigip_auth;
+Puerto `8093`. Base local `sigip_auth` (MySQL); en la nube, esquema propio en PostgreSQL.
+
+Variables: `DB_USER`, `DB_PASSWORD`, `JWT_SECRET` (o `DB_URL` completa).
+
+```bash
+mvn -pl backend/auth-service -am spring-boot:run
 ```
-
-Definir las variables de entorno:
-
-```text
-DB_USER=root
-DB_PASSWORD=<tu-clave-local>
-JWT_SECRET=<secreto-base64-de-al-menos-32-bytes>
-```
-
-La aplicación usa el puerto `8093` en esta primera etapa. Más adelante será registrada en Eureka y consumida a través del API Gateway.
-
-## Estado
-
-La estructura Maven y la aplicación Spring Boot ya están creadas. Las entidades, repositorios y seguridad se implementan en el siguiente paso.

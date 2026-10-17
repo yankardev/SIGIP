@@ -1,8 +1,9 @@
 package pe.edu.cibertec.sigip.catalogservice.repository;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 import pe.edu.cibertec.sigip.catalogservice.model.Categoria;
 import pe.edu.cibertec.sigip.catalogservice.model.ServicioImpresion;
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/** Pruebas de la capa de acceso a datos: insertar, actualizar, eliminar y listar servicios de impresión. */
 @DataJpaTest
 @ActiveProfiles("test")
 class ServicioImpresionRepositoryTest {
@@ -20,6 +22,17 @@ class ServicioImpresionRepositoryTest {
 
     @Autowired
     private CategoriaRepository categoriaRepository;
+
+    private Categoria categoria;
+
+    @BeforeEach
+    void setUp() {
+        categoria = categoriaRepository.save(Categoria.builder()
+                .nombre("Impresión")
+                .descripcion("Pruebas")
+                .activo(true)
+                .build());
+    }
 
     @Test
     void debeInsertarServicio() {
@@ -34,6 +47,9 @@ class ServicioImpresionRepositoryTest {
         servicioRepository.save(servicio("Tarjetas"));
 
         assertThat(servicioRepository.findAll()).hasSize(2);
+        assertThat(servicioRepository.listarConCategoria())
+                .extracting(ServicioImpresion::getNombre)
+                .containsExactly("Tarjetas", "Volantes");
     }
 
     @Test
@@ -41,12 +57,12 @@ class ServicioImpresionRepositoryTest {
         ServicioImpresion servicio = servicioRepository.saveAndFlush(servicio("Volantes"));
 
         servicio.setNombre("Volantes A5");
+        servicio.setPrecioBase(new BigDecimal("120.00"));
         servicioRepository.saveAndFlush(servicio);
 
-        assertThat(servicioRepository.findById(servicio.getIdservicio()))
-                .get()
-                .extracting(ServicioImpresion::getNombre)
-                .isEqualTo("Volantes A5");
+        ServicioImpresion actualizado = servicioRepository.findById(servicio.getIdservicio()).orElseThrow();
+        assertThat(actualizado.getNombre()).isEqualTo("Volantes A5");
+        assertThat(actualizado.getPrecioBase()).isEqualByComparingTo("120.00");
     }
 
     @Test
@@ -60,14 +76,6 @@ class ServicioImpresionRepositoryTest {
     }
 
     private ServicioImpresion servicio(String nombre) {
-        Categoria categoria = categoriaRepository.save(
-                Categoria.builder()
-                        .nombre("Impresión")
-                        .descripcion("Pruebas")
-                        .activo(true)
-                        .build()
-        );
-
         return ServicioImpresion.builder()
                 .nombre(nombre)
                 .descripcion("Servicio de prueba")
