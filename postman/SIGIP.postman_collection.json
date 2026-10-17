@@ -1,0 +1,1423 @@
+{
+  "info": {
+    "name": "SIGIP API",
+    "description": "Colección para probar SIGIP a través del API Gateway. Ejecuta las carpetas en orden: cada request guarda los ids que usa el siguiente. Cambia la variable gateway a la URL de la nube para probar el despliegue.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Login admin",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/auth-service/api/v1/auth/login",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "auth-service",
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomusuario\": \"admin\",\n  \"password\": \"{{admin_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('token_admin', pm.response.json().token);",
+                  "pm.collectionVariables.set('sufijo', Date.now().toString().slice(-6)); // nombres únicos por ejecución"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registro cliente",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/auth-service/api/v1/auth/registro",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "auth-service",
+                "api",
+                "v1",
+                "auth",
+                "registro"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomusuario\": \"ana{{sufijo}}\",\n  \"email\": \"ana{{sufijo}}@correo.pe\",\n  \"password\": \"Cliente123\",\n  \"nombres\": \"Ana\",\n  \"apellidos\": \"Torres\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login cliente",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/auth-service/api/v1/auth/login",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "auth-service",
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomusuario\": \"ana{{sufijo}}\",\n  \"password\": \"Cliente123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('token_cliente', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mi perfil",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/auth-service/api/v1/auth/me",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "auth-service",
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar usuarios (GET)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/auth-service/api/v1/usuarios",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "auth-service",
+                "api",
+                "v1",
+                "usuarios"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear usuario (POST)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/auth-service/api/v1/usuarios",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "auth-service",
+                "api",
+                "v1",
+                "usuarios"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomusuario\": \"caja{{sufijo}}\",\n  \"email\": \"caja{{sufijo}}@sigip.local\",\n  \"password\": \"Caja12345\",\n  \"nombres\": \"Luis\",\n  \"apellidos\": \"Ramos\",\n  \"activo\": true,\n  \"roles\": [\n    \"ADMIN\"\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('idusuario', pm.response.json().idusuario);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar usuario (PUT)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{gateway}}/auth-service/api/v1/usuarios/{{idusuario}}",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "auth-service",
+                "api",
+                "v1",
+                "usuarios",
+                "{{idusuario}}"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nomusuario\": \"caja{{sufijo}}\",\n  \"email\": \"caja{{sufijo}}@sigip.local\",\n  \"nombres\": \"Luis Alberto\",\n  \"apellidos\": \"Ramos\",\n  \"activo\": true,\n  \"roles\": [\n    \"ADMIN\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Eliminar usuario (DELETE)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{gateway}}/auth-service/api/v1/usuarios/{{idusuario}}",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "auth-service",
+                "api",
+                "v1",
+                "usuarios",
+                "{{idusuario}}"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Catálogo",
+      "item": [
+        {
+          "name": "Servicios activos (público)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/catalog-service/api/v1/servicios/activos",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "catalog-service",
+                "api",
+                "v1",
+                "servicios",
+                "activos"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Crear categoría (POST)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/catalog-service/api/v1/categorias",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "catalog-service",
+                "api",
+                "v1",
+                "categorias"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Señalética {{sufijo}}\",\n  \"descripcion\": \"Letreros y avisos\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('idcategoria', pm.response.json().idcategoria);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear servicio (POST)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/catalog-service/api/v1/servicios",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "catalog-service",
+                "api",
+                "v1",
+                "servicios"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Letrero acrílico 40x60\",\n  \"descripcion\": \"Acrílico 3 mm con vinil\",\n  \"precioBase\": 85.0,\n  \"requiereCotizacion\": false,\n  \"idcategoria\": {{idcategoria}},\n  \"activo\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('idservicio', pm.response.json().idservicio);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener servicio (GET)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/catalog-service/api/v1/servicios/{{idservicio}}",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "catalog-service",
+                "api",
+                "v1",
+                "servicios",
+                "{{idservicio}}"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Actualizar servicio (PUT)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{gateway}}/catalog-service/api/v1/servicios/{{idservicio}}",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "catalog-service",
+                "api",
+                "v1",
+                "servicios",
+                "{{idservicio}}"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Letrero acrílico 40x60\",\n  \"descripcion\": \"Acrílico 3 mm con vinil\",\n  \"precioBase\": 90.0,\n  \"requiereCotizacion\": false,\n  \"idcategoria\": {{idcategoria}},\n  \"activo\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Pedidos y pagos",
+      "item": [
+        {
+          "name": "Crear pedido (POST)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/sales-service/api/v1/pedidos",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "sales-service",
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idservicio\": {{idservicio}},\n  \"cantidad\": 2,\n  \"especificaciones\": \"Logo en esquina superior\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('idpedido', pm.response.json().idpedido);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mis pedidos (GET)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/sales-service/api/v1/pedidos",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "sales-service",
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Editar pedido (PUT)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{gateway}}/sales-service/api/v1/pedidos/{{idpedido}}",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "sales-service",
+                "api",
+                "v1",
+                "pedidos",
+                "{{idpedido}}"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idservicio\": {{idservicio}},\n  \"cantidad\": 3,\n  \"especificaciones\": \"Logo centrado\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Registrar pago",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/sales-service/api/v1/pedidos/{{idpedido}}/pagos",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "sales-service",
+                "api",
+                "v1",
+                "pedidos",
+                "{{idpedido}}",
+                "pagos"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 270.0,\n  \"metodo\": \"YAPE\",\n  \"numeroOperacion\": \"OP-123456\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('idpago', pm.response.json().idpago);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verificar pago (ADMIN)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/sales-service/api/v1/pagos/{{idpago}}/verificacion",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "sales-service",
+                "api",
+                "v1",
+                "pagos",
+                "{{idpago}}",
+                "verificacion"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aprobado\": true,\n  \"observacion\": \"Yape conforme\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Resumen de ventas (ADMIN)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/sales-service/api/v1/pedidos/resumen",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "sales-service",
+                "api",
+                "v1",
+                "pedidos",
+                "resumen"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Diseño",
+      "item": [
+        {
+          "name": "Subir versión de diseño (POST)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/design-service/api/v1/disenos",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "design-service",
+                "api",
+                "v1",
+                "disenos"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idpedido\": {{idpedido}},\n  \"nombreArchivo\": \"letrero-v1.pdf\",\n  \"urlArchivo\": \"https://drive.google.com/file/d/ejemplo\",\n  \"descripcion\": \"Primera propuesta\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('iddiseno', pm.response.json().iddiseno);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver diseños (GET)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/design-service/api/v1/disenos",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "design-service",
+                "api",
+                "v1",
+                "disenos"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cliente aprueba diseño",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/design-service/api/v1/disenos/{{iddiseno}}/decision",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "design-service",
+                "api",
+                "v1",
+                "disenos",
+                "{{iddiseno}}",
+                "decision"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APROBAR\",\n  \"comentario\": \"Conforme\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Producción",
+      "item": [
+        {
+          "name": "Crear orden (POST)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/production-service/api/v1/ordenes-produccion",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "production-service",
+                "api",
+                "v1",
+                "ordenes-produccion"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idpedido\": {{idpedido}},\n  \"prioridad\": \"ALTA\",\n  \"responsable\": \"Taller 1\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('idorden', pm.response.json().idorden);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cola de producción (GET)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/production-service/api/v1/ordenes-produccion",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "production-service",
+                "api",
+                "v1",
+                "ordenes-produccion"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Iniciar orden",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/production-service/api/v1/ordenes-produccion/{{idorden}}/inicio",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "production-service",
+                "api",
+                "v1",
+                "ordenes-produccion",
+                "{{idorden}}",
+                "inicio"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Control de calidad",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/production-service/api/v1/ordenes-produccion/{{idorden}}/calidad",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "production-service",
+                "api",
+                "v1",
+                "ordenes-produccion",
+                "{{idorden}}",
+                "calidad"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aprobado\": true,\n  \"observacion\": \"Sin defectos\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Inventario",
+      "item": [
+        {
+          "name": "Crear insumo (POST)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/inventory-service/api/v1/insumos",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "inventory-service",
+                "api",
+                "v1",
+                "insumos"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"ACR-{{sufijo}}\",\n  \"nombre\": \"Plancha acrílico 3 mm\",\n  \"unidadMedida\": \"PLANCHA\",\n  \"stockActual\": 10,\n  \"stockMinimo\": 4,\n  \"activo\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('idinsumo', pm.response.json().idinsumo);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Salida de stock",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/inventory-service/api/v1/insumos/{{idinsumo}}/movimientos",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "inventory-service",
+                "api",
+                "v1",
+                "insumos",
+                "{{idinsumo}}",
+                "movimientos"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"SALIDA\",\n  \"cantidad\": 7,\n  \"motivo\": \"Pedido\",\n  \"idpedido\": {{idpedido}}\n}"
+            }
+          }
+        },
+        {
+          "name": "Insumos bajo stock (GET)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/inventory-service/api/v1/insumos/bajo-stock",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "inventory-service",
+                "api",
+                "v1",
+                "insumos",
+                "bajo-stock"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Actualizar insumo (PUT)",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{gateway}}/inventory-service/api/v1/insumos/{{idinsumo}}",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "inventory-service",
+                "api",
+                "v1",
+                "insumos",
+                "{{idinsumo}}"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"ACR-{{sufijo}}\",\n  \"nombre\": \"Plancha acrílico transparente 3 mm\",\n  \"unidadMedida\": \"PLANCHA\",\n  \"stockActual\": 3,\n  \"stockMinimo\": 5,\n  \"activo\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Notificaciones",
+      "item": [
+        {
+          "name": "Mis avisos (GET)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/notification-service/api/v1/notificaciones",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "notification-service",
+                "api",
+                "v1",
+                "notificaciones"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Crear aviso (POST)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{gateway}}/notification-service/api/v1/notificaciones",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "notification-service",
+                "api",
+                "v1",
+                "notificaciones"
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destinatario\": \"ana{{sufijo}}\",\n  \"canal\": \"EMAIL\",\n  \"asunto\": \"Recordatorio\",\n  \"mensaje\": \"Tu pedido está listo\",\n  \"idpedido\": {{idpedido}}\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.response.to.be.success);",
+                  "pm.collectionVariables.set('idnotificacion', pm.response.json().idnotificacion);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Marcar leído",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{gateway}}/notification-service/api/v1/notificaciones/{{idnotificacion}}/leida",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "notification-service",
+                "api",
+                "v1",
+                "notificaciones",
+                "{{idnotificacion}}",
+                "leida"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Eliminar aviso (DELETE)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{gateway}}/notification-service/api/v1/notificaciones/{{idnotificacion}}",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "notification-service",
+                "api",
+                "v1",
+                "notificaciones",
+                "{{idnotificacion}}"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Reportes",
+      "item": [
+        {
+          "name": "Dashboard (ADMIN)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/report-service/api/v1/reportes/dashboard",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "report-service",
+                "api",
+                "v1",
+                "reportes",
+                "dashboard"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_admin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dashboard como cliente (403)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/report-service/api/v1/reportes/dashboard",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "report-service",
+                "api",
+                "v1",
+                "reportes",
+                "dashboard"
+              ]
+            },
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_cliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "gateway",
+      "value": "http://localhost:8090"
+    },
+    {
+      "key": "admin_password",
+      "value": "Admin12345"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_cliente",
+      "value": ""
+    },
+    {
+      "key": "sufijo",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+# Blueprint de Render (https://render.com): despliega SIGIP en la nube con PostgreSQL.
+# Render > New > Blueprint > selecciona el repositorio. Ver docs/09-despliegue-nube.md
+# Todos los servicios usan la misma imagen (Dockerfile raíz); la variable SERVICE indica cuál compilar.
+
+databases:
+  - name: sigip-db
+    plan: free
+    databaseName: sigip
+    user: sigip
+
+envVarGroups:
+  - name: sigip-comun
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: cloud
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JAVA_OPTS
+        value: "-XX:MaxRAMPercentage=70 -XX:+UseSerialGC -Xss512k"
+
+services:
+  # Frontend Angular (nginx). API_GATEWAY_URL = URL pública de sigip-gateway, p. ej. https://sigip-gateway.onrender.com
+  - type: web
+    name: sigip-frontend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    healthCheckPath: /
+    envVars:
+      - key: API_GATEWAY_URL
+        sync: false
+
+  - type: web
+    name: sigip-gateway
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVICE
+        value: api-gateway
+      - key: SPRING_PROFILES_ACTIVE
+        value: cloud
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: AUTH_URL
+        sync: false
+      - key: CATALOG_URL
+        sync: false
+      - key: SALES_URL
+        sync: false
+      - key: DESIGN_URL
+        sync: false
+      - key: PRODUCTION_URL
+        sync: false
+      - key: INVENTORY_URL
+        sync: false
+      - key: NOTIFICATION_URL
+        sync: false
+      - key: REPORT_URL
+        sync: false
+
+  - type: web
+    name: sigip-auth
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVICE
+        value: auth-service
+      - fromGroup: sigip-comun
+      - key: DB_HOST
+        fromDatabase: {name: sigip-db, property: host}
+      - key: DB_PORT
+        fromDatabase: {name: sigip-db, property: port}
+      - key: DB_NAME
+        fromDatabase: {name: sigip-db, property: database}
+      - key: DB_USER
+        fromDatabase: {name: sigip-db, property: user}
+      - key: DB_PASSWORD
+        fromDatabase: {name: sigip-db, property: password}
+      - key: SIGIP_ADMIN_PASSWORD
+        sync: false
+
+  - type: web
+    name: sigip-catalog
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVICE
+        value: catalog-service
+      - fromGroup: sigip-comun
+      - key: DB_HOST
+        fromDatabase: {name: sigip-db, property: host}
+      - key: DB_PORT
+        fromDatabase: {name: sigip-db, property: port}
+      - key: DB_NAME
+        fromDatabase: {name: sigip-db, property: database}
+      - key: DB_USER
+        fromDatabase: {name: sigip-db, property: user}
+      - key: DB_PASSWORD
+        fromDatabase: {name: sigip-db, property: password}
+
+  - type: web
+    name: sigip-sales
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVICE
+        value: sales-service
+      - fromGroup: sigip-comun
+      - key: DB_HOST
+        fromDatabase: {name: sigip-db, property: host}
+      - key: DB_PORT
+        fromDatabase: {name: sigip-db, property: port}
+      - key: DB_NAME
+        fromDatabase: {name: sigip-db, property: database}
+      - key: DB_USER
+        fromDatabase: {name: sigip-db, property: user}
+      - key: DB_PASSWORD
+        fromDatabase: {name: sigip-db, property: password}
+      - key: CATALOG_URL
+        sync: false
+
+  - type: web
+    name: sigip-design
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVICE
+        value: design-service
+      - fromGroup: sigip-comun
+      - key: DB_HOST
+        fromDatabase: {name: sigip-db, property: host}
+      - key: DB_PORT
+        fromDatabase: {name: sigip-db, property: port}
+      - key: DB_NAME
+        fromDatabase: {name: sigip-db, property: database}
+      - key: DB_USER
+        fromDatabase: {name: sigip-db, property: user}
+      - key: DB_PASSWORD
+        fromDatabase: {name: sigip-db, property: password}
+      - key: SALES_URL
+        sync: false
+
+  - type: web
+    name: sigip-production
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVICE
+        value: production-service
+      - fromGroup: sigip-comun
+      - key: DB_HOST
+        fromDatabase: {name: sigip-db, property: host}
+      - key: DB_PORT
+        fromDatabase: {name: sigip-db, property: port}
+      - key: DB_NAME
+        fromDatabase: {name: sigip-db, property: database}
+      - key: DB_USER
+        fromDatabase: {name: sigip-db, property: user}
+      - key: DB_PASSWORD
+        fromDatabase: {name: sigip-db, property: password}
+      - key: SALES_URL
+        sync: false
+
+  - type: web
+    name: sigip-inventory
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVICE
+        value: inventory-service
+      - fromGroup: sigip-comun
+      - key: DB_HOST
+        fromDatabase: {name: sigip-db, property: host}
+      - key: DB_PORT
+        fromDatabase: {name: sigip-db, property: port}
+      - key: DB_NAME
+        fromDatabase: {name: sigip-db, property: database}
+      - key: DB_USER
+        fromDatabase: {name: sigip-db, property: user}
+      - key: DB_PASSWORD
+        fromDatabase: {name: sigip-db, property: password}
+
+  - type: web
+    name: sigip-notification
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVICE
+        value: notification-service
+      - fromGroup: sigip-comun
+      - key: DB_HOST
+        fromDatabase: {name: sigip-db, property: host}
+      - key: DB_PORT
+        fromDatabase: {name: sigip-db, property: port}
+      - key: DB_NAME
+        fromDatabase: {name: sigip-db, property: database}
+      - key: DB_USER
+        fromDatabase: {name: sigip-db, property: user}
+      - key: DB_PASSWORD
+        fromDatabase: {name: sigip-db, property: password}
+
+  - type: web
+    name: sigip-report
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SERVICE
+        value: report-service
+      - fromGroup: sigip-comun
+      - key: SALES_URL
+        sync: false
+      - key: INVENTORY_URL
+        sync: false

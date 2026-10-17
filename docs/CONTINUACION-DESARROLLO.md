@@ -1,58 +1,52 @@
 # Continuación de SIGIP
 
-## Estado actual en develop
+## Estado actual
 
-- MySQL: bases `sigip_auth`, `sigip_catalog`, `sigip_sales`, `sigip_design`, `sigip_production`, `sigip_inventory`, `sigip_notification`.
-- Discovery Server: 8761.
-- Auth Service: 8093.
-- Catalog Service: 8094.
-- Sales Service: 8095.
-- API Gateway: 8090.
-- Login JWT probado correctamente mediante Gateway.
-- Usuario administrador: `admin`.
-- No se almacenan contraseñas en texto plano; se usa BCrypt.
-- `JWT_SECRET` debe ser el mismo en auth y en los servicios protegidos.
-- No subir secretos al repositorio.
+- Backend completo: 8 microservicios + Eureka + API Gateway + librería `sigip-common`.
+- `mvn clean verify` desde la raíz: 11 módulos, 78 pruebas en verde.
+- Flujo completo probado por el gateway con PostgreSQL (perfil `cloud`): `scripts/prueba-e2e.sh`.
+- CI en GitHub Actions (`.github/workflows/ci.yml`), alternativa `Jenkinsfile`.
+- Docker: `Dockerfile` único + `docker-compose.yml` (MySQL, RabbitMQ y todos los servicios).
+- Nube: `render.yaml` (Render + PostgreSQL). Guía en `docs/09-despliegue-nube.md`.
+
+| Servicio | Puerto | Base local |
+|---|---|---|
+| discovery-server | 8761 | — |
+| api-gateway | 8090 | — |
+| auth-service | 8093 | sigip_auth |
+| catalog-service | 8094 | sigip_catalog |
+| sales-service | 8095 | sigip_sales |
+| design-service | 8096 | sigip_design |
+| production-service | 8097 | sigip_production |
+| inventory-service | 8098 | sigip_inventory |
+| notification-service | 8099 | sigip_notification |
+| report-service | 8100 | — |
 
 ## Al cambiar de máquina
 
-1. Clonar el repositorio.
-2. Cambiar a `develop`.
-3. Configurar Java 25, Maven, MySQL y RabbitMQ.
-4. Crear las bases ejecutando:
-   `mysql -u root -p < infra/mysql/init/01-create-databases.sql`
-5. Configurar las variables de entorno en IntelliJ:
-   - `DB_USER=root`
-   - `DB_PASSWORD=<password local de MySQL>`
-   - `JWT_SECRET=<mismo secret Base64>`
-   - Para auth:
-     - `SIGIP_ADMIN_USERNAME=admin`
-     - `SIGIP_ADMIN_EMAIL=admin@sigip.local`
-     - `SIGIP_ADMIN_PASSWORD=<password local del admin>`
-6. Levantar en este orden:
-   Discovery -> Auth -> Catalog -> Sales -> servicios restantes -> Gateway.
+1. Clonar el repositorio y cambiar a `develop`.
+2. Opción rápida: `cp .env.example .env` y `docker compose up -d --build`.
+3. Opción IntelliJ:
+   - Java 25, Maven, MySQL (y RabbitMQ si se quieren eventos).
+   - `mysql -u root -p < infra/mysql/init/01-create-databases.sql`
+   - Abrir el `pom.xml` de la raíz (proyecto multi-módulo) y ejecutar `mvn clean install -DskipTests`.
+   - Variables: `DB_USER`, `DB_PASSWORD`, `JWT_SECRET` (igual en todos), `SIGIP_ADMIN_PASSWORD` (auth),
+     `EVENTOS_HABILITADOS=false` si no hay RabbitMQ.
+   - Orden: discovery → auth → catalog → sales → resto → gateway.
 
-## Próximo trabajo
+## Rutas por el gateway
 
-1. Validar y corregir la ruta de `sales-service` por Gateway (la última prueba devolvió HTTP 404).
-2. Registrar datos reales de categorías y servicios de impresión.
-3. Completar la comunicación Sales -> Catalog mediante OpenFeign.
-4. Completar Design, Production, Inventory, Notification y Report.
-5. Integrar RabbitMQ para eventos/notificaciones.
-6. Crear frontend Angular `frontend/sigip-web`.
-7. Integrar Angular con API Gateway, JWT y CRUD REST.
-8. Completar pruebas de acceso a datos para los módulos principales.
-9. Preparar Docker/README, evidencia técnica y entregables académicos.
-
-## Rutas principales
-
-- Auth: `/auth-service/api/v1/auth`
-- Catalog: `/catalog-service/api/v1/servicios`
-- Sales: `/sales-service/api/v1/pedidos`
+- Auth: `/auth-service/api/v1/auth/login`, `/auth-service/api/v1/auth/registro`, `/auth-service/api/v1/usuarios`
+- Catalog: `/catalog-service/api/v1/categorias`, `/catalog-service/api/v1/servicios`
+- Sales: `/sales-service/api/v1/pedidos`, `/sales-service/api/v1/pedidos/{id}/pagos`, `/sales-service/api/v1/pagos/{id}/verificacion`
 - Design: `/design-service/api/v1/disenos`
 - Production: `/production-service/api/v1/ordenes-produccion`
 - Inventory: `/inventory-service/api/v1/insumos`
 - Notification: `/notification-service/api/v1/notificaciones`
-- Report: `/report-service/api/v1/reportes/estado`
+- Report: `/report-service/api/v1/reportes/dashboard`
 
-> Este documento es un punto de control para continuar el desarrollo desde otra máquina.
+## Próximo trabajo sugerido
+
+1. Desplegar en Render siguiendo `docs/09-despliegue-nube.md` y grabar el video de demo.
+2. ~~Frontend Angular consumiendo el gateway~~ Hecho en `frontend/` (ver `docs/10-frontend.md`).
+3. Proforma en PDF y carga real de archivos de diseño (hoy se registra la URL del archivo).

@@ -1,0 +1,126 @@
+# Integración continua de SIGIP: en cada push o pull request compila todos los módulos con Maven,
+# ejecuta las pruebas, publica los reportes (pruebas, cobertura y optimización), prueba y compila el
+# frontend Angular y construye las imágenes Docker.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Compilar y probar (Maven)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Compilar, probar y medir cobertura
+        run: mvn -B -ntp clean verify
+
+      - name: Resumen de la optimización del catálogo
+        if: always()
+        run: |
+          f=backend/catalog-service/target/optimizacion-catalogo.md
+          if [ -f "$f" ]; then cat "$f" >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Publicar reportes de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reportes-pruebas
+          path: backend/*/target/surefire-reports/
+          if-no-files-found: ignore
+
+      - name: Publicar cobertura JaCoCo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-jacoco
+          path: backend/*/target/site/jacoco/
+          if-no-files-found: ignore
+
+  frontend:
+    name: Frontend Angular (pruebas y build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Pruebas unitarias (Vitest)
+        run: npm test
+
+      - name: Build de producción
+        run: npm run build
+
+      - name: Publicar build del frontend
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/frontend/browser/
+
+  docker-frontend:
+    name: Imagen Docker (frontend)
+    needs: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Construir imagen
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          tags: sigip/frontend:${{ github.sha }}
+          push: false
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+  docker:
+    name: Imagen Docker (${{ matrix.service }})
+    needs: build-test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [discovery-server, api-gateway, auth-service, catalog-service, sales-service,
+                  design-service, production-service, inventory-service, notification-service, report-service]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Construir imagen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: SERVICE=${{ matrix.service }}
+          tags: sigip/${{ matrix.service }}:${{ github.sha }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
