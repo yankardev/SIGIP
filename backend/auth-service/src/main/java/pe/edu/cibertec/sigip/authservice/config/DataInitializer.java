@@ -16,6 +16,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
+    private static final Set<String> ROLES_SIGIP = Set.of(
+            "ADMIN", "CLIENTE", "VENTAS", "CAJA", "DISENO", "PRODUCCION", "ALMACEN"
+    );
+
     private final RolRepository rolRepository;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -31,7 +35,7 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        Rol cliente = crearRolSiNoExiste("CLIENTE");
+        ROLES_SIGIP.forEach(this::crearRolSiNoExiste);
         Rol admin = crearRolSiNoExiste("ADMIN");
 
         if (!adminPassword.isBlank() && !usuarioRepository.existsByNomusuario(adminUsername)) {
