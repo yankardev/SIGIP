@@ -19,3 +19,13 @@ export const invitadoGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   return auth.autenticado() ? inject(Router).createUrlTree(['/inicio']) : true;
 };
+
+
+/** Crea un guard para las áreas internas. ADMIN puede acceder a todos los módulos. */
+export const rolesGuard = (rolesPermitidos: string[]): CanActivateFn => () => {
+  const auth = inject(AuthService);
+  const autorizado = auth.tieneRol('ADMIN') || rolesPermitidos.some((rol) =>
+    auth.usuario()?.roles.includes(rol as import('./models').Rol),
+  );
+  return autorizado ? true : inject(Router).createUrlTree(['/inicio']);
+};
